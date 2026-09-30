@@ -786,7 +786,9 @@ kbd {
   background-position: center;
   filter: blur(100px) saturate(.6);
   opacity: .33;
-  transition: opacity 1s
+  transition: opacity 1s;
+  animation: backdrop-drift 38s ease-in-out infinite alternate;
+  will-change: transform
 }
 .stage-gradient {
   position: absolute;
@@ -802,7 +804,8 @@ kbd {
   filter: blur(95px);
   opacity: .5;
   transform: rotate(-25deg);
-  pointer-events: none
+  pointer-events: none;
+  will-change: transform
 }
 .fog-one {
   top: 210px
@@ -881,29 +884,30 @@ kbd {
   fill: none;
   stroke-width: 1.6;
   transform: scale(var(--breath));
-  opacity: calc(.18 + var(--halo) * .65)
+  opacity: calc(.08 + var(--halo) * .18)
 }
 .orbit-base {
   stroke: var(--accent);
-  opacity: .14
+  display: none
 }
 .orbit-main {
   stroke: url(#orbit-light);
   stroke-dasharray: 880 270;
+  opacity: .72;
   transform-origin: center;
   transform: rotate(-23deg)
 }
 .orbit-fine {
   stroke: var(--accent);
-  opacity: .22;
+  display: none;
   stroke-width: 1;
   stroke-dasharray: 4 34
 }
 .orbit-arc {
   stroke: var(--accent);
   stroke-width: 3;
-  opacity: calc(.3 + var(--low));
-  filter: drop-shadow(0 0 9px var(--accent))
+  opacity: calc(.12 + var(--low) * .24);
+  filter: drop-shadow(0 0 6px var(--accent))
 }
 .orbit-point {
   fill: var(--accent);
@@ -954,7 +958,7 @@ kbd {
   width: 700px;
   height: 700px;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle at center,#171a1c 0,#0a0b0c 2px,#1b1d1e 3px,#0a0b0c 4px,#101213 7px);
+  background: radial-gradient(circle at 47% 42%,#2a3031 0%,#171b1d 17%,#0c0f11 54%,#15191a 100%);
   border: 3px solid #343738;
   box-shadow: inset 0 0 0 12px #080b0d,inset 0 0 0 14px #31363880,inset 0 0 60px #000,0 0 0 2px #000;
   will-change: transform;
@@ -965,14 +969,17 @@ kbd {
   position: absolute;
   inset: 0;
   background: conic-gradient(from 20deg,transparent 0deg,#ffffff0c 24deg,transparent 65deg,#ffffff01 125deg,#ffffff0b 175deg,transparent 205deg,#ffffff01 250deg,#ffffff0a 320deg,transparent 350deg);
-  border-radius: 50%
+  border-radius: 50%;
+  animation: sheen-drift 28s ease-in-out infinite alternate
 }
 .vinyl-grooves {
   position: absolute;
-  inset: 33px;
+  inset: 28px;
   border-radius: 50%;
-  border: 1px solid #ffffff08;
-  box-shadow: inset 0 0 0 30px #ffffff02,inset 0 0 0 32px #ffffff05,inset 0 0 0 72px #ffffff03
+  border: 1px solid #ffffff0a;
+  box-shadow: inset 0 0 0 30px #ffffff01,inset 0 0 0 32px #ffffff03,inset 0 0 0 72px #ffffff02;
+  opacity: .72;
+  filter: blur(.25px)
 }
 .vinyl-label {
   position: absolute;
@@ -1736,6 +1743,22 @@ dialog li p {
     filter: blur(.7px)
   }
 }
+@keyframes backdrop-drift {
+  from {
+    transform: scale(1.03) translate3d(-1.2%, -0.8%, 0)
+  }
+  to {
+    transform: scale(1.09) translate3d(1.4%, 1.1%, 0)
+  }
+}
+@keyframes sheen-drift {
+  from {
+    transform: rotate(-8deg) scale(1.02)
+  }
+  to {
+    transform: rotate(12deg) scale(1.06)
+  }
+}
 @media(min-width:1550px) {
   .workspace {
     grid-template-columns: 324px minmax(330px,1fr) 330px;
@@ -1920,8 +1943,11 @@ dialog li p {
   .lyric-display.change .lyric-main,.lyric-display.change .lyric-secondary {
     animation: none
   }
-  .record-composition,.cover-backdrop {
+  .record-composition,.cover-backdrop,.vinyl-sheen {
     transition: none
+  }
+  .cover-backdrop,.vinyl-sheen {
+    animation: none
   }
   .lyric-display.secondary-change .lyric-secondary {
     animation: none;

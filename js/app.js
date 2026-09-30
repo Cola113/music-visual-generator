@@ -124,7 +124,6 @@ function syncClipUI() {
   $('#clip-end-time').textContent = formatTime(end);
   $('#wave-selection').style.left = `${start / current.duration * 100}%`;
   $('#wave-selection').style.width = `${(end - start) / current.duration * 100}%`;
-  $('#stage-clip-caption').textContent = `一段光 · ${(end - start).toFixed(0)} 秒`;
 }
 
 function syncVisualUI() {
@@ -300,7 +299,6 @@ audio.addEventListener('loading', () => {
   $('#restart-play').disabled = true;
   $('#stage-error').hidden = true;
   $('#stage').classList.remove('audio-error');
-  $('#preview-state').textContent = '待机也有光';
 });
 audio.addEventListener('ready', event => {
   ready = true;
@@ -333,7 +331,6 @@ audio.addEventListener('state', event => {
   $('#play-toggle').setAttribute('aria-label', playing ? '暂停' : '播放');
   $('#play-toggle use').setAttribute('href', playing ? '#i-pause' : '#i-play');
   $('#play-state').classList.toggle('active', playing);
-  $('#preview-state').textContent = playing ? '声音正在流动' : ended ? '片段已结束' : '待机也有光';
   if (ready) $('#audio-status').textContent = playing ? '正在播放所选片段' : ended ? '片段结束 · 可从头播放' : '已暂停 · 画面仍在呼吸';
   if (ended) persist();
 });

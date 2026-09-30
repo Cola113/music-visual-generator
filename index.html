@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101215">
+  <meta name="description" content="月相切片：用唱片、歌词和光，留下值得记住的几十秒。纯本地音乐视觉工作台。">
+  <title>月相切片 · 音乐视觉工作台</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/workspace.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.6 14.2A9 9 0 0 1 9.8 3.4 9 9 0 1 0 20.6 14.2Z"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m3 17 5-5 4 4 4-5 5 6"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 8V3m0 5h5M3.6 8A9 9 0 1 1 3 14"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 4 6 8H3v8h3l5 4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 10v4m4-7v10m5-14v18m5-14v10m4-7v4"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><ellipse cx="12" cy="12" rx="11" ry="5" transform="rotate(-35 12 12)"/></symbol>
+    <symbol id="i-glow" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17m10-10 1.4-1.4"/><circle cx="12" cy="12" r="4"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8Zm0 0v5h5M8 12h8m-8 4h6"/></symbol>
+  </svg>
+  <header class="app-header">
+    <a class="brand" href="./" aria-label="月相切片首页"><span class="brand-mark"><svg><use href="#i-moon"/></svg></span><span>月相切片<small>音乐视觉工作台</small></span></a>
+    <div class="header-note">一张唱片，一段值得记住的光。</div>
+    <div class="header-actions"><span class="local-badge"><i></i>仅在本地创作</span><button id="clean-mode" class="button small"><svg><use href="#i-expand"/></svg>纯净模式<kbd>H</kbd></button></div>
+  </header>
+
+  <main class="workspace">
+    <aside class="panel library-panel" aria-label="曲目与播放设置">
+      <div class="panel-heading"><div><span class="eyebrow">01 / 声音</span><h1>选一首，留一段。</h1></div><span class="outline-tag">本地工作台</span></div>
+      <div class="library-scroll">
+      <section class="panel-section song-section">
+        <div class="section-title"><h2>曲目库</h2><span id="track-count">3 首演示</span></div>
+        <div id="track-list" class="track-list" role="list" aria-label="曲目选择"></div>
+        <label class="button import-audio" for="audio-file"><svg><use href="#i-upload"/></svg>导入本地音频<span>＋</span></label>
+        <input id="audio-file" class="file-input" type="file" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.flac,.webm">
+        <p class="field-hint">音频留在本机 · 支持浏览器可解码的格式</p>
+        <div id="track-metadata" class="import-metadata" hidden>
+          <label>歌名<input id="track-title" maxlength="80" placeholder="为这段声音命名"></label>
+          <label>艺术家<input id="track-artist" maxlength="80" placeholder="艺术家名称"></label>
+        </div>
+      </section>
+
+      <section class="panel-section cover-section">
+        <div class="section-title"><h2>封面</h2><span>决定画面的情绪</span></div>
+        <div id="cover-drop" class="cover-drop" tabindex="0" role="button" aria-label="点击、拖入或粘贴封面图片">
+          <img id="cover-preview" src="assets/covers/mist-letter.svg" alt="当前封面">
+          <div><strong>给声音一张面孔</strong><span>点击上传，或拖入图片</span><small>也可以在此粘贴图片 <kbd>Ctrl V</kbd></small></div>
+          <svg><use href="#i-image"/></svg>
+        </div>
+        <input id="cover-file" class="file-input" type="file" accept="image/*">
+        <p id="cover-status" class="field-hint" role="status">正在使用自绘演示封面</p>
+      </section>
+
+      <section class="panel-section clip-section">
+        <div class="section-title"><h2>高潮切片</h2><span id="clip-length" class="accent-text">30.0 秒</span></div>
+        <div class="time-fields"><label>开始时间 <span>秒</span><input id="clip-start" type="number" min="0" step="0.1" value="8" aria-label="片段开始时间（秒）"></label><span class="time-divider">—</span><label>结束时间 <span>秒</span><input id="clip-end" type="number" min="0" step="0.1" value="38" aria-label="片段结束时间（秒）"></label></div>
+        <div class="waveform-wrap"><canvas id="waveform" width="520" height="112" aria-label="整首歌曲波形与片段范围"></canvas><div id="wave-selection" class="wave-selection"></div><div id="wave-playhead" class="wave-playhead"></div></div>
+        <div class="wave-times"><span>00:00</span><span id="audio-duration">00:45</span></div>
+        <p id="clip-message" class="field-hint" role="status">选取 15–60 秒，把最好的一段留下来。</p>
+      </section>
+
+      </div>
+      <section class="player-section" aria-label="播放控制">
+        <div class="player-controls"><button id="restart-play" class="icon-button" aria-label="从片段起点播放" title="从片段起点播放"><svg><use href="#i-restart"/></svg></button><button id="play-toggle" class="play-button" aria-label="播放" disabled><svg><use href="#i-play"/></svg></button><div><strong id="player-title">雾港来信</strong><span id="audio-status" role="status">正在准备声音…</span></div><span id="play-state" class="play-state"><i></i></span></div>
+        <input id="progress" class="progress-range" type="range" min="8" max="38" value="8" step="0.01" aria-label="片段播放进度">
+        <div class="play-times"><span id="current-time">00:08</span><span id="clip-end-time">00:38</span></div>
+        <div class="volume-control"><svg><use href="#i-volume"/></svg><input id="volume" type="range" min="0" max="100" value="70" aria-label="音量"><output id="volume-value">70%</output><span class="shortcut-hint"><kbd>空格</kbd>播放 / 暂停</span></div>
+      </section>
+      <div class="panel-bottom"><span id="session-status"><i></i>本标签页自动保存</span><button id="record-help" class="text-button">录屏指南 ↗</button></div>
+    </aside>
+
+    <section class="stage-column" aria-label="视觉作品预览">
+      <div class="preview-heading"><span><i></i>实时预览</span><div><span>9:16</span><span>1080 × 1920</span></div></div>
+      <div class="stage-fit">
+        <div id="stage" class="stage" data-scene="moon" aria-label="9:16 音乐视觉舞台">
+          <div id="stage-scene" class="stage-scene">
+            <div class="cover-backdrop"></div><div class="stage-gradient"></div>
+            <div class="ambient-fog fog-one"></div><div class="ambient-fog fog-two"></div>
+            <canvas id="particle-canvas" width="1080" height="1920" aria-hidden="true"></canvas>
+            <div class="stage-topline"><span id="stage-edition">月相切片 / 001</span><span class="stage-top-mark">◐</span></div>
+            <div class="scene-caption"><span id="scene-name">唱片月相</span><i></i><span id="stage-mood">冷蓝 · 氛围电子</span></div>
+
+            <div class="record-composition">
+              <div class="record-aura"></div>
+              <svg class="moon-orbit" viewBox="0 0 900 900" aria-hidden="true"><defs><linearGradient id="orbit-light"><stop stop-color="white" stop-opacity=".05"/><stop offset=".45" stop-color="white" stop-opacity=".8"/><stop offset="1" stop-color="white" stop-opacity=".12"/></linearGradient></defs><circle class="orbit-base" cx="450" cy="450" r="392"/><circle class="orbit-main" cx="450" cy="450" r="392"/><circle class="orbit-fine" cx="450" cy="450" r="417"/><path class="orbit-arc" d="M92 610 A392 392 0 0 1 625 99"/><circle class="orbit-point" cx="807" cy="287" r="9"/></svg>
+              <div class="phase-dot phase-one">◕</div><div class="phase-dot phase-two">◐</div><div class="phase-dot phase-three">◔</div>
+              <div class="vinyl-shadow"></div>
+              <div id="vinyl" class="vinyl"><div class="vinyl-sheen"></div><div class="vinyl-grooves"></div><div class="vinyl-label"><img id="vinyl-cover" src="assets/covers/mist-letter.svg" alt="唱片中心封面"><span class="spindle"></span></div><span class="vinyl-stamp">月相切片 · 自生成声音</span></div>
+              <div class="record-coordinate">33⅓ <span>转 / 分钟的记忆</span></div>
+            </div>
+
+            <div id="lyric-display" class="lyric-display" aria-label="当前歌词">
+              <span class="lyric-overline">此刻 · 08.0″</span>
+              <div id="lyric-main" class="lyric-main">把月光寄给远方</div>
+              <div id="lyric-secondary" class="lyric-secondary">风经过安静的海</div>
+            </div>
+            <div class="stage-song"><span class="song-rule"></span><h2 id="stage-title">雾港来信</h2><p id="stage-artist">遥屿</p></div>
+            <div class="stage-bottomline"><div class="stage-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span id="stage-clip-caption">一段光 · 30 秒</span></div>
+            <canvas id="grain-canvas" width="270" height="480" aria-hidden="true"></canvas>
+            <div class="stage-vignette"></div>
+            <div id="stage-error" class="stage-error" role="alert" hidden></div>
+          </div>
+        </div>
+      </div>
+      <div class="preview-bottom"><span id="preview-state"><i></i>待机也有光</span><span>你的声音，你的画面。</span></div>
+      <div class="stage-actions"><button id="clean-start" class="button primary"><svg><use href="#i-play"/></svg>从片段起点进入纯净模式<svg><use href="#i-arrow"/></svg></button><p>准备好后，用浏览器或系统录屏留下这一刻。</p></div>
+    </section>
+
+    <aside class="panel edit-panel" aria-label="歌词与视觉设置">
+      <div class="panel-heading"><div><span class="eyebrow">02 / 画面</span><h2>让情绪被看见。</h2></div><span class="tiny-moon">◑</span></div>
+      <section class="panel-section lyrics-section">
+        <div class="section-title"><h2>歌词轨道</h2><label class="text-button" for="lrc-file"><svg><use href="#i-file"/></svg>导入 LRC</label></div>
+        <input id="lrc-file" class="file-input" type="file" accept=".lrc,.txt,text/plain">
+        <label class="visually-hidden" for="lrc-editor">LRC 歌词文本</label>
+        <textarea id="lrc-editor" rows="5" spellcheck="false" placeholder="[00:08.00] 把月光寄给远方&#10;[00:13.00] 风经过安静的海"></textarea>
+        <div class="lrc-actions"><span id="lyric-count">8 句歌词</span><button id="apply-lrc" class="button small">应用歌词<svg><use href="#i-check"/></svg></button></div>
+        <p id="lrc-message" class="field-hint" role="status">点击一句跳转 · 双击文字或时间微调</p>
+        <div id="lyric-list" class="lyric-list" aria-label="点击歌词跳转，双击编辑"></div>
+      </section>
+
+      <section class="panel-section scenes-section">
+        <div class="section-title"><h2>视觉场景</h2><span>即刻切换</span></div>
+        <div class="scene-list" role="group" aria-label="选择视觉场景">
+          <button class="scene-card selected" data-scene="moon" aria-pressed="true"><span class="scene-thumb moon-thumb"><span></span></span><div><strong>唱片月相</strong><small>一圈月光，随低频呼吸</small></div><span class="scene-selected">✓</span></button>
+          <button class="scene-card" data-scene="orbit" aria-pressed="false"><span class="scene-thumb orbit-thumb"><span></span></span><div><strong>歌词轨道</strong><small>让一句话，成为画面中心</small></div><span class="scene-selected">✓</span></button>
+          <button class="scene-card" data-scene="afterglow" aria-pressed="false"><span class="scene-thumb glow-thumb"><span></span></span><div><strong>情绪残影</strong><small>雾、光斑与缓慢的旧时光</small></div><span class="scene-selected">✓</span></button>
+        </div>
+      </section>
+
+      <section class="panel-section visual-section">
+        <div class="section-title"><h2>光与质感</h2><span>少一点，也很好</span></div>
+        <div class="color-row"><span>主题色</span><div class="color-swatches" role="group" aria-label="主题预设色"><button class="color-swatch" style="--swatch:#86d8df" data-color="#86d8df" aria-label="月光青" aria-pressed="true"></button><button class="color-swatch" style="--swatch:#f0b47d" data-color="#f0b47d" aria-label="黄昏橘" aria-pressed="false"></button><button class="color-swatch" style="--swatch:#b9a0f5" data-color="#b9a0f5" aria-label="夜航紫" aria-pressed="false"></button><button class="color-swatch" style="--swatch:#e5a6b5" data-color="#e5a6b5" aria-label="余温粉" aria-pressed="false"></button><button class="color-swatch" style="--swatch:#d9dec8" data-color="#d9dec8" aria-label="雾白" aria-pressed="false"></button></div><label class="custom-color" title="自定义主题色"><input id="accent-color" type="color" value="#86d8df" aria-label="自定义主题色"><span>＋</span></label></div>
+        <label class="intensity-control"><span>粒子扩散</span><input id="particles" type="range" min="0" max="100" value="42" aria-label="粒子强度"><output for="particles">42</output></label>
+        <label class="intensity-control"><span>月相光环</span><input id="halo" type="range" min="0" max="100" value="62" aria-label="光环强度"><output for="halo">62</output></label>
+        <label class="intensity-control"><span>胶片质感</span><input id="grain" type="range" min="0" max="100" value="17" aria-label="胶片强度"><output for="grain">17</output></label>
+      </section>
+      <div class="edit-bottom"><svg><use href="#i-moon"/></svg><p>一张唱片，承载一段歌词、<br>一种情绪和最值得记住的几十秒。</p></div>
+    </aside>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="clean-hint" class="clean-hint" hidden>按 <kbd>ESC</kbd> 返回工作台</div>
+  <dialog id="help-dialog">
+    <button id="close-help" class="dialog-close" aria-label="关闭录屏指南">×</button><span class="eyebrow">把这一刻留下来</span><h2>三步，录下你的切片。</h2>
+    <ol><li><strong>准备画面</strong><p>选择音频、调整 15–60 秒片段，添加封面和 LRC，选好场景。</p></li><li><strong>进入纯净模式</strong><p>点击「从片段起点进入纯净模式」，自动播放。也可按 H 只切换画面；按空格播放 / 暂停，按 R 从起点播放。</p></li><li><strong>用你熟悉的工具录屏</strong><p>使用浏览器或系统录屏，裁剪舞台为 9:16，并启用系统声音。切片结束会自动停下，按 ESC 返回。1080×1920 是舞台逻辑尺寸；录制像素取决于窗口和录屏设置。</p></li></ol>
+    <p class="dialog-note">本工具不录制、不上传音频或视频。请自行确认你导入素材的使用权限。</p>
+  </dialog>
+  <noscript><div class="noscript">此工作台需要启用 JavaScript。请通过 python -m http.server 打开。</div></noscript>
+</body>
+</html>

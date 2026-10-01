@@ -867,6 +867,70 @@ kbd {
   top: 320px;
   transition: top 1s,transform 1s
 }
+.phone-frame {
+  display: none;
+  position: absolute;
+  left: 132px;
+  top: -38px;
+  width: 636px;
+  height: 1030px;
+  border: 3px solid #55d9e8a6;
+  border-radius: 88px;
+  background: linear-gradient(145deg,#55d9e80a,#ffc35b06 56%,#f76c5d0a);
+  box-shadow: inset 0 0 0 10px #09131a80,inset 0 0 45px #55d9e81c,0 0 18px #55d9e84a,0 0 64px #55d9e82d;
+  transform: rotate(-3deg);
+  pointer-events: none;
+  z-index: 0
+}
+.phone-frame:before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 152px;
+  height: 23px;
+  transform: translateX(-50%);
+  border-radius: 0 0 16px 16px;
+  background: #081117;
+  border: 1px solid #55d9e83d
+}
+.phone-speaker {
+  position: absolute;
+  top: 29px;
+  left: calc(50% - 23px);
+  width: 46px;
+  height: 4px;
+  border-radius: 9px;
+  background: #55d9e86b
+}
+.phone-camera {
+  position: absolute;
+  top: 26px;
+  right: 212px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffc35b;
+  box-shadow: 0 0 11px #ffc35b
+}
+.phone-notifications {
+  position: absolute;
+  top: 92px;
+  right: 56px;
+  display: flex;
+  gap: 9px
+}
+.phone-notifications i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ffc35b;
+  box-shadow: 0 0 12px #ffc35b;
+  opacity: .8
+}
+.phone-notifications i:nth-child(2) { background: #55d9e8; box-shadow: 0 0 12px #55d9e8; opacity: .65 }
+.phone-notifications i:nth-child(3) { background: #f76c5d; box-shadow: 0 0 12px #f76c5d; opacity: .55 }
 .record-aura {
   position: absolute;
   inset: 40px;
@@ -1076,6 +1140,10 @@ kbd {
   font-size: 1.075em;
   text-shadow: 0 0 28px color-mix(in srgb,var(--accent) 20%,transparent)
 }
+.lyric-unit {
+  display: inline-block;
+  white-space: pre
+}
 .lyric-secondary {
   font-size: 30px;
   line-height: 1.6;
@@ -1251,6 +1319,98 @@ kbd {
 }
 .stage[data-scene=afterglow] .record-coordinate {
   opacity: .5
+}
+.stage[data-scene=pocket] {
+  background: #0b1119
+}
+.stage[data-scene=pocket] .cover-backdrop {
+  opacity: .42;
+  filter: blur(76px) saturate(1.55) brightness(.76)
+}
+.stage[data-scene=pocket] .stage-gradient {
+  background: radial-gradient(circle at 18% 23%,#ffc35b30,transparent 31%),radial-gradient(circle at 84% 42%,#55d9e82b,transparent 36%),linear-gradient(180deg,#101722ac 0%,#0b1019d9 58%,#080c12f5 100%);
+  animation: pocket-gradient-drift 34s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform,filter
+}
+.stage[data-scene=pocket] .ambient-fog {
+  opacity: .48;
+  background: linear-gradient(90deg,transparent,#55d9e820 33%,#ffc35b1b 60%,transparent)
+}
+.stage[data-scene=pocket] .fog-one {
+  top: 275px;
+  transform: rotate(-18deg)
+}
+.stage[data-scene=pocket] .fog-two {
+  top: 760px;
+  opacity: .28;
+  transform: rotate(24deg)
+}
+.stage[data-scene=pocket] .record-composition {
+  top: 352px;
+  transform: scale(.84) rotate(-2.5deg)
+}
+.stage[data-scene=pocket] .phone-frame {
+  display: block
+}
+.stage[data-scene=pocket] .moon-orbit {
+  opacity: 0
+}
+.stage[data-scene=pocket] .record-aura {
+  box-shadow: 0 0 108px 25px #ffc35b33,inset 0 0 50px #55d9e825;
+  opacity: calc(var(--halo) * (.55 + var(--low) * .8))
+}
+.stage[data-scene=pocket] .vinyl-shadow {
+  box-shadow: 22px 24px 84px #000000a0,0 0 60px #ffc35b12
+}
+.stage[data-scene=pocket] .lyric-display {
+  display: block;
+  top: 1307px;
+  z-index: 5;
+  color: #fff9e9;
+  text-shadow: 0 3px 26px #000000c7,0 0 22px #55d9e82b;
+  min-height: 232px
+}
+.stage[data-scene=pocket] .lyric-main {
+  font-family: "Baskerville","Iowan Old Style",Georgia,"Times New Roman",serif;
+  font-style: italic;
+  font-size: 58px;
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: .02em;
+  color: #fff9e9;
+  text-shadow: 0 2px 24px #000,0 0 24px #ffc35b2e
+}
+.stage[data-scene=pocket] .lyric-main .keyword {
+  font-size: 1em;
+  color: #ffc35b
+}
+.stage[data-scene=pocket] .lyric-display.change .lyric-main,
+.stage[data-scene=pocket] .lyric-display.change .lyric-secondary,
+.stage[data-scene=pocket] .lyric-display.secondary-change .lyric-secondary {
+  animation: none
+}
+.stage[data-scene=pocket] .lyric-display.change .lyric-unit,
+.stage[data-scene=pocket] .lyric-display.secondary-change .lyric-unit {
+  animation: lyric-unit-in .78s cubic-bezier(.22,.8,.24,1) both;
+  animation-delay: var(--unit-delay,0ms)
+}
+.stage[data-scene=pocket] .lyric-secondary {
+  margin-top: 14px;
+  font-family: "Noto Serif SC","Songti SC","STSong","SimSun",serif;
+  color: #c8cecad6;
+  font-size: 38px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .04em;
+  filter: none;
+  text-shadow: 0 2px 18px #000000c7
+}
+.stage[data-scene=pocket] .stage-song {
+  bottom: 185px
+}
+.stage[data-scene=pocket] .stage-song h2 {
+  letter-spacing: .02em
 }
 .preview-bottom {
   display: flex;
@@ -1469,6 +1629,32 @@ kbd {
 }
 .glow-thumb:after {
   background: #c29b75
+}
+.pocket-thumb {
+  background: linear-gradient(145deg,#19232b,#29251f)
+}
+.pocket-thumb:before {
+  width: 25px;
+  height: 31px;
+  top: 5px;
+  left: 5px;
+  border-radius: 7px;
+  border-color: #55d9e8a8;
+  box-shadow: inset 0 0 0 3px #10161e,0 0 8px #55d9e84d
+}
+.pocket-thumb span {
+  width: 14px;
+  height: 14px;
+  top: 14px;
+  left: 11px;
+  border-width: 2px;
+  border-color: #ffc35b
+}
+.pocket-thumb:after {
+  bottom: 5px;
+  width: 17px;
+  left: 10px;
+  background: #f76c5d
 }
 .scene-card>div {
   flex: 1;
@@ -1743,12 +1929,42 @@ dialog li p {
     filter: blur(.7px)
   }
 }
+@keyframes lyric-unit-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0,var(--unit-offset,16px),0);
+    clip-path: inset(var(--unit-clip-top,0) 0 var(--unit-clip-bottom,100%));
+    filter: blur(4px)
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0,calc(var(--unit-offset,16px) * -.1),0);
+    clip-path: inset(0);
+    filter: blur(.2px)
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0,0,0);
+    clip-path: inset(0);
+    filter: blur(0)
+  }
+}
 @keyframes backdrop-drift {
   from {
     transform: scale(1.03) translate3d(-1.2%, -0.8%, 0)
   }
   to {
     transform: scale(1.09) translate3d(1.4%, 1.1%, 0)
+  }
+}
+@keyframes pocket-gradient-drift {
+  from {
+    transform: scale(1.01) translate3d(-.8%, -.5%, 0);
+    filter: hue-rotate(-3deg) saturate(.98)
+  }
+  to {
+    transform: scale(1.06) translate3d(.9%, .7%, 0);
+    filter: hue-rotate(4deg) saturate(1.05)
   }
 }
 @keyframes sheen-drift {
@@ -1949,7 +2165,17 @@ dialog li p {
   .cover-backdrop,.vinyl-sheen {
     animation: none
   }
+  .stage[data-scene=pocket] .stage-gradient {
+    animation: none
+  }
   .lyric-display.secondary-change .lyric-secondary {
     animation: none;
+  }
+  .lyric-unit {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    filter: none
   }
 }

@@ -86,14 +86,29 @@ export class VisualEngine {
   fitLine(element, text, size, emphasize = false) {
     element.replaceChildren();
     let keyword = emphasize ? KEYWORDS.find(word => text.includes(word)) : null;
-    if (keyword) {
-      const position = text.indexOf(keyword);
-      element.append(document.createTextNode(text.slice(0, position)));
+    const tokens = text.match(/[\u4e00-\u9fff]|[A-Za-z]+(?:['’][A-Za-z]+)?|\s+|[^\s]/gu) || [];
+    const keywordStart = keyword ? text.indexOf(keyword) : -1;
+    const seed = [...text].reduce((total, char) => total + char.codePointAt(0), 0);
+    let cursor = 0;
+    let unitIndex = 0;
+    tokens.forEach(token => {
+      const start = cursor;
+      cursor += token.length;
+      if (/^\s+$/.test(token)) {
+        element.append(document.createTextNode(token));
+        return;
+      }
       const span = document.createElement('span');
-      span.className = 'keyword';
-      span.textContent = keyword;
-      element.append(span, document.createTextNode(text.slice(position + keyword.length)));
-    } else element.textContent = text;
+      span.className = 'lyric-unit';
+      if (keyword && start >= keywordStart && cursor <= keywordStart + keyword.length) span.classList.add('keyword');
+      const pattern = (seed + unitIndex * 31 + token.codePointAt(0)) % 19;
+      const direction = pattern % 2 ? -1 : 1;
+      span.style.setProperty('--unit-offset', `${direction * (12 + pattern % 14)}px`);
+      span.style.setProperty('--unit-delay', `${(pattern % 5) * 46 + (unitIndex % 3) * 12}ms`);
+      span.textContent = token;
+      element.append(span);
+      unitIndex += 1;
+    });
     this.measure.font = `${size}px "Microsoft YaHei", "PingFang SC", sans-serif`;
     const width = this.measure.measureText(text).width * (keyword ? 1.035 : 1);
     element.style.fontSize = `${Math.min(size, size * 840 / Math.max(1, width))}px`;
@@ -114,17 +129,23 @@ export class VisualEngine {
       position = '故事将要开始';
     } else {
       main = lyrics[index].text;
-      // 两行上限：切句时保留上一句的残影，随后预告下一句。
-      const previous = index > 0 && time - lyrics[index].time < 1.3;
-      secondary = (previous ? lyrics[index - 1] : lyrics[index + 1])?.text || '';
+      if (this.track.visual.scene === 'pocket' && lyrics[index].translation) {
+        secondary = lyrics[index].translation;
+      } else {
+        // 其它主题保留下一句作为轻量预告。
+        const previous = index > 0 && time - lyrics[index].time < 1.3;
+        secondary = (previous ? lyrics[index - 1] : lyrics[index + 1])?.text || '';
+      }
       position = `此刻 · ${lyrics[index].time.toFixed(1)}″`;
     }
     const key = `${this.track.id}:${index}:${main}:${secondary}:${this.track.visual.scene}`;
     if (key === this.lastLyric) return;
     this.lastLyric = key;
     const container = document.querySelector('#lyric-display');
-    this.fitLine(document.querySelector('#lyric-main'), main, this.track.visual.scene === 'orbit' ? 66 : 48, true);
-    this.fitLine(document.querySelector('#lyric-secondary'), secondary, this.track.visual.scene === 'orbit' ? 32 : 30);
+    const lyricSize = this.track.visual.scene === 'orbit' ? 66 : this.track.visual.scene === 'pocket' ? 58 : 48;
+    const secondarySize = this.track.visual.scene === 'orbit' ? 32 : this.track.visual.scene === 'pocket' ? 35 : 30;
+    this.fitLine(document.querySelector('#lyric-main'), main, lyricSize, true);
+    this.fitLine(document.querySelector('#lyric-secondary'), secondary, secondarySize);
     container.dataset.lyricIndex = index;
     container.classList.toggle('no-lyrics', !lyrics.length);
     const mainChanged = main !== this.lastMain;
@@ -164,8 +185,8 @@ export class VisualEngine {
     if (!this.track) return;
     const scene = this.track.visual.scene;
     const centerX = 540;
-    const centerY = scene === 'orbit' ? 654 : 770;
-    const radius = scene === 'orbit' ? 334 : 374;
+    const centerY = scene === 'orbit' ? 654 : scene === 'pocket' ? 802 : 770;
+    const radius = scene === 'orbit' ? 334 : scene === 'pocket' ? 382 : 374;
     const accent = this.track.visual.accentColor;
     const intensity = this.track.visual.intensity.halo;
     const count = this.spectrum.length;
@@ -173,10 +194,12 @@ export class VisualEngine {
     const lowPulse = this.level.low * (24 + intensity * 24);
     const wavePoints = (offset, scale, phase) => Array.from({ length: count }, (_, i) => {
       const angle = i / count * Math.PI * 2 + phase;
-      const left = this.spectrum[(i + count - 2) % count];
+      const before = this.spectrum[(i + count - 2) % count];
+      const left = this.spectrum[(i + count - 1) % count];
       const current = this.spectrum[i];
-      const right = this.spectrum[(i + 2) % count];
-      const energy = (left + current * 2 + right) / 4;
+      const right = this.spectrum[(i + 1) % count];
+      const after = this.spectrum[(i + 2) % count];
+      const energy = (before + left * 2 + current * 4 + right * 2 + after) / 10;
       const ripple = Math.sin(angle * 3 + time * .18) * (3.5 + this.level.mid * 4)
         + Math.cos(angle * 6 - time * .12) * (1.2 + this.level.high * 2);
       const distance = radius + offset + lowPulse + energy * (30 + intensity * 34) * scale + ripple;
@@ -185,26 +208,35 @@ export class VisualEngine {
     const drawWave = (offset, scale, phase, alpha, width, blur) => {
       const points = wavePoints(offset, scale, phase);
       ctx.beginPath();
-      ctx.moveTo((points[0][0] + points[1][0]) / 2, (points[0][1] + points[1][1]) / 2);
+      ctx.moveTo(points[0][0], points[0][1]);
       for (let i = 0; i < count; i++) {
-        const point = points[i];
-        const next = points[(i + 1) % count];
-        const midpointX = (point[0] + next[0]) / 2;
-        const midpointY = (point[1] + next[1]) / 2;
-        ctx.quadraticCurveTo(point[0], point[1], midpointX, midpointY);
+        const p0 = points[(i + count - 1) % count];
+        const p1 = points[i];
+        const p2 = points[(i + 1) % count];
+        const p3 = points[(i + 2) % count];
+        const c1x = p1[0] + (p2[0] - p0[0]) / 6;
+        const c1y = p1[1] + (p2[1] - p0[1]) / 6;
+        const c2x = p2[0] - (p3[0] - p1[0]) / 6;
+        const c2y = p2[1] - (p3[1] - p1[1]) / 6;
+        ctx.bezierCurveTo(c1x, c1y, c2x, c2y, p2[0], p2[1]);
       }
       ctx.closePath();
       ctx.strokeStyle = accent;
-      ctx.lineWidth = width;
-      ctx.globalAlpha = alpha * (.55 + intensity * .45);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
       ctx.shadowColor = accent;
-      ctx.shadowBlur = blur;
+      ctx.shadowBlur = blur * 1.35;
+      ctx.globalAlpha = alpha * (.55 + intensity * .45) * .2;
+      ctx.lineWidth = width * 3.2;
+      ctx.stroke();
+      ctx.shadowBlur = blur * .7;
+      ctx.globalAlpha = alpha * (.55 + intensity * .45);
+      ctx.lineWidth = width;
       ctx.stroke();
     };
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     drawWave(0, 1, time * .012, .42, 2.7, 22);
-    drawWave(7, .45, -time * .009, .1, 1.15, 10);
     ctx.restore();
   }
 
@@ -212,7 +244,7 @@ export class VisualEngine {
     if (!this.track) return;
     const intensity = this.track.visual.intensity.particles;
     const scene = this.track.visual.scene;
-    const slow = scene === 'afterglow' ? .35 : 1;
+    const slow = scene === 'afterglow' ? .35 : scene === 'pocket' ? .72 : 1;
     const count = Math.round(12 + intensity * 68);
     this.ctx.clearRect(0, 0, 1080, 1920);
     this.drawReactiveHalo(time);
@@ -224,6 +256,7 @@ export class VisualEngine {
       const spread = Math.sin(time * .035 + p.phase) * (14 + this.level.mid * 48);
       const x = p.x + spread;
       const fade = Math.min(1, p.y / 170, (1920 - p.y) / 180);
+      this.ctx.fillStyle = scene === 'pocket' ? ['#ffc35b', '#55d9e8', '#f76c5d'][i % 3] : this.track.visual.accentColor;
       this.ctx.globalAlpha = p.opacity * fade * (.3 + intensity * .7) * (1 + this.level.high * .6);
       this.ctx.beginPath();
       this.ctx.arc(x, p.y, p.radius * (1 + this.level.high * 1.4), 0, Math.PI * 2);
@@ -246,6 +279,35 @@ export class VisualEngine {
       this.ctx.ellipse(540, 771, 465, 170, -.4 + Math.sin(time * .015) * .035, 0, Math.PI * 2);
       this.ctx.stroke();
     }
+    if (scene === 'pocket') {
+      const pulse = this.level.low * 1.35 + this.level.mid * .4;
+      this.ctx.save();
+      this.ctx.globalCompositeOperation = 'screen';
+      this.ctx.lineCap = 'round';
+      this.ctx.lineJoin = 'round';
+      this.ctx.translate(540, 837);
+      this.ctx.rotate(-3.5 * Math.PI / 180);
+      this.ctx.translate(-540, -837);
+      for (let i = 0; i < 13; i++) {
+        const x = 294 + i * 41;
+        const height = 9 + (Math.sin(time * 2.2 + i * .7) * .5 + .5) * (14 + pulse * 36) + this.spectrum[(i * 5) % this.spectrum.length] * 36;
+        const color = ['#ffc35b', '#55d9e8', '#f76c5d'][i % 3];
+        this.ctx.strokeStyle = color;
+        this.ctx.shadowColor = color;
+        this.ctx.shadowBlur = 17 + this.level.high * 12;
+        this.ctx.globalAlpha = .22 + this.level.high * .18;
+        this.ctx.lineWidth = 10;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, 1250 - height);
+        this.ctx.lineTo(x, 1250 + height * .18);
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 5;
+        this.ctx.globalAlpha = .72 + this.level.high * .2;
+        this.ctx.lineWidth = 4.6;
+        this.ctx.stroke();
+      }
+      this.ctx.restore();
+    }
     this.ctx.globalAlpha = 1;
   }
 
@@ -262,14 +324,16 @@ export class VisualEngine {
       this.level[band] += (targets[band] - this.level[band]) * smoothing;
       this.scene.style.setProperty(`--${band}`, this.level[band].toFixed(4));
     }
-    const restrained = this.track?.visual.scene === 'afterglow';
+    const scene = this.track?.visual.scene;
+    const restrained = scene === 'afterglow';
     const breath = 1 + this.level.low * (restrained ? .014 : .035) * (this.track?.visual.intensity.halo ?? .6);
     this.scene.style.setProperty('--breath', breath.toFixed(4));
     this.scene.style.setProperty('--record-scale', (1 + this.level.low * (restrained ? .008 : .02)).toFixed(4));
     this.scene.style.setProperty('--energy', (this.level.low * .7 + this.level.mid * .3).toFixed(4));
     this.scene.classList.toggle('is-playing', playing);
     this.updateSpectrum(playing, delta);
-    this.rotation = (this.rotation + delta * (playing ? restrained ? 3.2 : 5.8 + this.level.low * 4.5 : .32) * this.motion) % 360;
+    const rotationSpeed = playing ? restrained ? 3.2 : scene === 'pocket' ? 4.25 + this.level.low * 3.2 : 5.8 + this.level.low * 4.5 : .32;
+    this.rotation = (this.rotation + delta * rotationSpeed * this.motion) % 360;
     this.scene.style.setProperty('--rotation', `${this.rotation.toFixed(3)}deg`);
     this.scene.style.setProperty('--meter', (1 + this.level.mid * 2).toFixed(3));
     this.scene.querySelector('.fog-one').style.transform = `translate(${Math.sin(time * .018) * 48}px, ${Math.cos(time * .014) * 36}px) rotate(-25deg)`;

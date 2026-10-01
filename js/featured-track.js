@@ -1,0 +1,28 @@
+export const FEATURED_TRACK = {
+  id: 'dancing-with-my-phone',
+  title: '《Dancing with my phone》',
+  artist: 'Estela Sun',
+  audioUrl: 'assets/audio/dancing-with-my-phone.mp3',
+  coverUrl: 'assets/covers/dancing-with-my-phone.jpg',
+  duration: 203.591111,
+  clip: { start: 122.49, end: 152.49 },
+  mood: 'Pocket Night · 暖黄湖蓝',
+  phrase: '一个人，也可以和这首歌跳完一支舞。',
+  bpm: 101.33,
+  isDemo: true,
+  isFeatured: true,
+  lyrics: [
+    { time: 122.49, text: "Dancing, I'm all alone", translation: '独自起舞，我孤身一人' },
+    { time: 125.97, text: 'Figuring out how I can get you home', translation: '思索着如何让你回到我身边' },
+    { time: 131.88, text: 'Dancing with my phone', translation: '与手机共舞' },
+    { time: 135.27, text: 'Thinking about you', translation: '心中想着你' },
+    { time: 141.30, text: "Dancing, I'm all alone", translation: '独自起舞，我孤身一人' },
+    { time: 144.78, text: 'Figuring out how I can get you home', translation: '思索着如何让你回到我身边' },
+    { time: 150.72, text: 'Dancing with my phone', translation: '与手机共舞' },
+  ],
+  visual: {
+    scene: 'pocket',
+    accentColor: '#ffc35b',
+    intensity: { particles: .58, halo: .72, grain: .12 },
+  },
+};

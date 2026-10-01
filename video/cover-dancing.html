@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1440,height=1920,initial-scale=1">
+  <title>第002张唱片</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 1440px; height: 1920px; margin: 0; overflow: hidden; background: #081117; }
+    body { font-family: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif; color: #f5f1e7; }
+    #cover { position: relative; width: 1440px; height: 1920px; overflow: hidden; background: #081117; }
+    #scene { position: absolute; top: -100px; left: 0; display: block; width: 1440px; height: 2560px; }
+    .shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(3,10,15,.54), rgba(3,10,15,.03) 23%, rgba(3,10,15,.04) 70%, rgba(3,10,15,.58) 100%); }
+    .heading { position: absolute; top: 112px; left: 116px; right: 116px; }
+    .edition { display: flex; align-items: baseline; gap: 15px; margin: 0; font-size: 40px; line-height: 1; font-weight: 400; letter-spacing: 0; color: #a9d8d8; }
+    .edition .number { font: italic 400 70px/1 Georgia, "Times New Roman", serif; color: #f7f2e8; }
+    .edition-rule { display: none; }
+    .track { margin: 34px 0 0; color: #f4f1e8; }
+    .track-title { margin: 0; font: 400 62px/1.15 "Noto Serif SC", "Songti SC", "STSong", serif; letter-spacing: .01em; }
+    .track-artist { margin: 13px 0 0; font: 400 32px/1.25 Georgia, "Times New Roman", serif; letter-spacing: .05em; color: #c9d9d7; }
+    .genre-block { position: absolute; left: 120px; right: 120px; bottom: 126px; }
+    .genre-rule { display: none; }
+    .genre { display: flex; align-items: baseline; justify-content: space-between; gap: 28px; margin: 0; }
+    .genre .chinese { font-size: 44px; line-height: 1.35; font-weight: 400; letter-spacing: 0; color: #e4e6dc; }
+    .genre .english { font: 400 31px/1.35 Georgia, "Times New Roman", serif; letter-spacing: .04em; color: #96c9cf; }
+  </style>
+</head>
+<body>
+  <main id="cover">
+    <img id="scene" alt="手机与黑胶唱片的夜色可视化画面">
+    <div class="shade"></div>
+    <header class="heading">
+      <p class="edition"><span>第</span><span class="number">002</span><span>张唱片</span></p>
+      <div class="edition-rule"></div>
+      <div class="track">
+        <p class="track-title">《Dancing with my phone》</p>
+        <p class="track-artist">Estela Sun</p>
+      </div>
+    </header>
+    <footer class="genre-block">
+      <div class="genre-rule"></div>
+      <p class="genre"><span class="chinese">卧室流行</span><span class="english">BEDROOM POP</span></p>
+    </footer>
+  </main>
+  <script>
+    const scene = document.querySelector('#scene');
+    const edition = window.__EDITION__ || '002';
+    document.querySelector('.number').textContent = edition;
+    document.title = `第${edition}张唱片`;
+    window.coverReady = new Promise((resolve, reject) => {
+      scene.onload = resolve;
+      scene.onerror = () => reject(new Error('无法加载视频画面'));
+      scene.src = window.__CLEAN_FRAME__;
+    });
+  </script>
+</body>
+</html>

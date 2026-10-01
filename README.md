@@ -22,7 +22,7 @@ python -m http.server 8000 --bind 127.0.0.1
 2. 修改片段开始和结束秒数。正常音频保持 15–60 秒；不足 15 秒的音频保留整段。开始、结束、播放进度和歌词跳转都受片段范围限制，结束时自动暂停。
 3. 点击封面区上传图片，拖入图片，或粘贴剪贴板中的图片。PNG、JPEG、WebP 和有效 SVG 均可。文字粘贴仍按普通编辑处理。
 4. 粘贴 LRC 并点击「应用歌词」，也可导入 UTF-8 `.lrc` / `.txt`。时间以整首歌曲为基准，无需减去片段起点。点击歌词列表跳转；双击单句时间或文字修改，Enter 或失焦提交，ESC 取消。清空编辑框后应用，会恢复歌名与情绪短句。
-5. 切换「唱片月相」「歌词轨道」「情绪残影」，调整主题色、粒子、光环和胶片强度。
+5. 切换「唱片月相」「歌词轨道」「情绪残影」「口袋夜舞」，调整主题色、粒子、光环和胶片强度。
 6. 点击「从片段起点进入纯净模式」，或按 `H` 进入后按 `R` 从起点播放。退出提示约 3 秒后消失，再开始录屏；需要准确录到起点时，在提示消失后按 `R`。使用浏览器或系统录屏工具，选择系统声音，并按舞台边界裁剪为 9:16。片段结束后按 `ESC` 返回。
 
 快捷键：`H` 切换纯净模式；`ESC` 退出纯净模式；`空格` 播放 / 暂停；`R` 从片段起点播放。输入框编辑时不触发播放快捷键。纯净模式保留舞台，隐藏所有编辑器、按钮、错误浮层和滚动条。
@@ -45,6 +45,11 @@ python -m http.server 8000 --bind 127.0.0.1
 - [第六版预览图](exports/sway-my-way-moon-phase-v6-poster.jpg)
 - [第七版 MP4](exports/sway-my-way-moon-phase-v7.mp4)
 - [第七版预览图](exports/sway-my-way-moon-phase-v7-poster.jpg)
+
+当前主题曲《Dancing with my phone》使用封面中的亮黄、湖蓝和珊瑚红，配合手机轮廓、通知光点和节拍柱，形成「Pocket Night / 口袋夜舞」场景。默认片段为原曲 02:02.49–02:32.49 的副歌，离线样片为 1080×1920、30 fps、30 秒：
+
+- [Pocket Night MP4](exports/dancing-with-my-phone-pocket-night.mp4)
+- [Pocket Night 预览图](exports/dancing-with-my-phone-pocket-night-poster.jpg)
 
 渲染代码在 `video/`：`analyze.py` 用 PyAV 和 NumPy 生成逐帧频谱，`render.html` / `render-v3.html` / `render-v4.html` / `render-v5.html` / `render-v6.html` / `render-v7.html` 绘制确定性的画面，`render.mjs` / `render-v3.mjs` / `render-v4.mjs` / `render-v5.mjs` / `render-v6.mjs` / `render-v7.mjs` 用 Playwright、Edge 和 FFmpeg 合成 H.264 / AAC 视频。该脚本独立于网页工作台，需要上述工具；脚本中的本机默认路径可通过 `MOONCUT_PLAYWRIGHT`、`MOONCUT_EDGE`、`MOONCUT_FFMPEG` 覆盖。`MOONCUT_PLAYWRIGHT` 指向包含 `index.mjs` 的 Playwright 包目录，其余两个变量指向可执行文件。
 
@@ -83,6 +88,14 @@ node video/render-cover.mjs art 001
 node video/render-cover.mjs art 002
 ```
 
+这首歌的艺术版首稿使用独立模板和编号 `002`，避免复用旧示例曲目的 Sway My Way 素材：
+
+```powershell
+node video/render-dancing-cover.mjs 002
+```
+
+输出为 `exports/dancing-with-my-phone-xiaohongshu-cover-002.png` / `.jpg`。
+
 输出文件会按编号保存为 `exports/sway-my-way-xiaohongshu-cover-001.png` / `.jpg` 或对应的 `002` 文件。`video/cover.html` 已将唱片主体略微放大并上移，以适应移除中间大字后的留白构图；`cover-promo.html` 仍保留宣传版模板，需要宣传文案时单独使用 `promo` 版本。
 
 ## 确认版视频制作流程
@@ -117,16 +130,19 @@ python scripts/generate_assets.py
 
 ```text
 index.html                     中文工作台与纯净舞台入口
-css/workspace.css              三栏布局、响应式规则、三场景与切句样式
+css/workspace.css              三栏布局、响应式规则、四场景与切句样式
 js/app.js                      界面事件、导入、编辑、曲目状态与会话恢复
 js/audio.js                    fetch / 解码、片段音源、音量、频段分析
 js/lyrics.js                   LRC 解析、序列化、定位与片段边界
 js/visuals.js                  唱片、画布粒子、颗粒、平滑频段与两行歌词
 js/storage.js                  sessionStorage 设置与 IndexedDB 二进制
 js/demo-tracks.js              生成的三首曲目清单与默认设置
+js/featured-track.js           主题曲《Dancing with my phone》与口袋夜舞设置
 assets/audio/*.wav             三首自生成演示曲
+assets/audio/dancing-with-my-phone.mp3 用户提供的主题曲副本
 assets/covers/*.svg            三张代码自绘封面
-assets/lyrics/*.lrc            三份原创演示歌词
+assets/covers/dancing-with-my-phone.jpg 用户提供的主题封面副本
+assets/lyrics/*.lrc            演示歌词与主题曲翻译歌词
 assets/icon.svg                自绘月相图标
 scripts/generate_assets.py     Python 标准库素材生成器
 scripts/format_css.mjs         可选 CSS 阅读格式化工具
@@ -147,7 +163,7 @@ tests/browser.mjs              无额外依赖的本机 Edge CDP 验收
   clip: { start, end },
   lyrics: [{ time, text }],
   visual: {
-    scene: 'moon', // moon / orbit / afterglow
+    scene: 'moon', // moon / orbit / afterglow / pocket
     accentColor: '#86d8df',
     intensity: { particles: 0.42, halo: 0.62, grain: 0.17 }
   }
@@ -162,7 +178,7 @@ tests/browser.mjs              无额外依赖的本机 Edge CDP 验收
 
 ## 实际验证
 
-已在本机 Edge headless 的真实网页中运行 22 组检查，并人工查看桌面、手机、三场景、三色封面、明亮封面和纯净舞台截图。验证记录为 `.verification/browser-report.json` 与同目录 PNG；该目录不进入 Git。
+已在本机 Edge headless 的真实网页中运行 23 组检查，并人工查看桌面、手机、四场景、三色封面、明亮封面和纯净舞台截图。验证记录为 `.verification/browser-report.json` 与同目录 PNG；该目录不进入 Git。
 
 | 验收项 | 验证结果 |
 | --- | --- |
@@ -173,7 +189,7 @@ tests/browser.mjs              无额外依赖的本机 Edge CDP 验收
 | 片段限制 | 最小 / 最大长度、音频边界、进度约束与自动停止通过；检查实际音源 start 的偏移与持续时间 |
 | LRC | 多时间戳、偏移、解析错误、当前高亮、点击跳转、范围约束、单句时间 / 文字修改、本地文件导入通过 |
 | 会话恢复 | 同标签刷新恢复导入音频、封面、曲目、歌词、片段、三项强度、主题与音量；实际检查 IndexedDB 二进制 |
-| 三场景 | 即时切换通过，切换过程中播放继续 |
+| 四场景 | 即时切换通过，切换过程中播放继续 |
 | 歌词对比与布局 | 冷蓝、暖橘、紫夜、明亮自绘封面截图检查通过；两行不溢出、不重叠；黑色自定义主题自动提高关键词亮度 |
 | 舞台比例 | 1440×1000、1280×800、1024×768、820×1000、390×844、1280×540、390×450 完整保持 9:16，舞台不超出视口，无横向溢出 |
 | 纯净模式 | 起点播放、H / ESC、退出提示自动隐藏通过；桌面和手机无编辑控件与滚动条 |

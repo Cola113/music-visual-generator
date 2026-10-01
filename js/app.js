@@ -1,4 +1,5 @@
 import { DEMO_TRACKS } from './demo-tracks.js';
+import { FEATURED_TRACK } from './featured-track.js';
 import { AudioEngine } from './audio.js';
 import { VisualEngine, readableAccent } from './visuals.js';
 import { SessionStore } from './storage.js';
@@ -24,17 +25,28 @@ function sanitizeTrack(track) {
     artist: String(track.artist || '本地创作者').slice(0, 80),
     lyrics: Array.isArray(track.lyrics) ? track.lyrics.filter(line => Number.isFinite(line.time) && line.time >= 0 && typeof line.text === 'string').sort((a, b) => a.time - b.time) : [],
     clip: normalizeClip(track.clip?.start, track.clip?.end, track.duration),
-    visual: { scene: ['moon', 'orbit', 'afterglow'].includes(visual.scene) ? visual.scene : 'moon',
+    visual: { scene: ['moon', 'orbit', 'afterglow', 'pocket'].includes(visual.scene) ? visual.scene : 'moon',
       accentColor: /^#[0-9a-f]{6}$/i.test(visual.accentColor) ? visual.accentColor : '#86d8df',
       intensity: Object.fromEntries(['particles', 'halo', 'grain'].map((name, i) => [name, Number.isFinite(intensity[name]) ? Math.max(0, Math.min(1, intensity[name])) : [.42, .62, .17][i]])) },
   };
 }
 
-let tracks = DEMO_TRACKS.map(demo => {
+const featuredSaved = restoredTracks.find(track => track?.id === FEATURED_TRACK.id);
+const featuredLyrics = Array.isArray(featuredSaved?.lyrics) && featuredSaved.lyrics.length
+  ? featuredSaved.lyrics.map(line => {
+    const source = FEATURED_TRACK.lyrics.find(reference => Math.abs(reference.time - line.time) < .03);
+    return source?.translation && !line.translation ? { ...line, translation: source.translation } : line;
+  })
+  : structuredClone(FEATURED_TRACK.lyrics);
+const featured = sanitizeTrack({ ...structuredClone(FEATURED_TRACK), ...featuredSaved,
+  lyrics: featuredLyrics,
+  audioUrl: FEATURED_TRACK.audioUrl, coverUrl: FEATURED_TRACK.coverUrl, isDemo: true, isFeatured: true,
+  duration: FEATURED_TRACK.duration });
+let tracks = [featured, ...DEMO_TRACKS.map(demo => {
   const saved = restoredTracks.find(track => track?.id === demo.id);
   return sanitizeTrack({ ...structuredClone(demo), ...saved, audioUrl: demo.audioUrl,
     coverUrl: demo.coverUrl, isDemo: true, duration: demo.duration });
-});
+})];
 if (restoredTracks.length) {
   tracks.push(...restoredTracks.filter(track => track && !track.isDemo && typeof track.id === 'string')
     .map(track => sanitizeTrack({ ...track, audioUrl: null, coverUrl: 'assets/covers/mist-letter.svg' })));
@@ -107,7 +119,7 @@ function renderTracks() {
     button.addEventListener('click', () => void selectTrack(track));
     list.append(button);
   });
-  $('#track-count').textContent = tracks.length === 3 ? '3 首自生成演示' : `${tracks.length} 首声音`;
+  $('#track-count').textContent = tracks.length === 4 ? '1 个主题 · 3 首自生成演示' : `${tracks.length} 首声音`;
 }
 
 function syncClipUI() {
@@ -274,7 +286,7 @@ async function selectTrack(track, resumePosition = false) {
   syncClipUI();
   $('#player-title').textContent = track.title;
   $('#cover-preview').src = track.coverUrl || 'assets/covers/mist-letter.svg';
-  $('#cover-status').textContent = track.coverAssetKey ? '已导入封面 · 本标签页刷新可恢复' : '正在使用自绘演示封面';
+  $('#cover-status').textContent = track.isFeatured ? '主题封面 · 随项目一起使用' : track.coverAssetKey ? '已导入封面 · 本标签页刷新可恢复' : track.isDemo ? '正在使用自绘演示封面' : '使用默认封面';
   $('#cover-status').classList.remove('error');
   $('#track-metadata').hidden = track.isDemo;
   $('#track-title').value = track.title;

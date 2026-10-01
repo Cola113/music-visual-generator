@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080,height=1920,initial-scale=1">
+  <title>Dancing with my phone · Pocket Night</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; margin: 0; overflow: hidden; background: #090e15; }
+    body { position: relative; font-family: Arial, "Microsoft YaHei", sans-serif; }
+    #stage, #backdrop, #wash, #visual { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+    #stage { overflow: hidden; background: #090e15; }
+    #backdrop { background-position: center; background-size: cover; filter: blur(64px) saturate(1.32) brightness(.72); opacity: .34; transform: scale(1.2); }
+    #wash { background: linear-gradient(180deg, rgba(9,16,25,.76) 0%, rgba(8,17,24,.34) 34%, rgba(6,12,18,.84) 76%, rgba(5,9,15,.98) 100%), radial-gradient(ellipse at 18% 25%, rgba(255,195,91,.16), transparent 48%), radial-gradient(ellipse at 86% 42%, rgba(85,217,232,.13), transparent 52%); }
+    #visual { display: block; image-rendering: auto; }
+    #phone-shell { position: absolute; left: 207px; top: 332px; width: 666px; height: 1050px; border: 3px solid rgba(85,217,232,.62); border-radius: 94px; background: linear-gradient(145deg, rgba(85,217,232,.055), rgba(255,195,91,.018) 53%, rgba(247,108,93,.05)); box-shadow: inset 0 0 0 10px rgba(3,12,18,.52), inset 0 0 48px rgba(85,217,232,.09), 0 0 20px rgba(85,217,232,.28), 0 0 68px rgba(85,217,232,.18); transform: rotate(-3.5deg); opacity: .94; }
+    #phone-shell::before { content: ""; position: absolute; top: 20px; left: 50%; width: 156px; height: 25px; border-radius: 0 0 17px 17px; transform: translateX(-50%); background: #081118; border: 1px solid rgba(85,217,232,.3); }
+    #title-block { position: absolute; left: 74px; right: 74px; top: 152px; z-index: 4; text-align: center; color: rgba(250,249,237,.96); text-shadow: 0 5px 30px rgba(0,0,0,.5); opacity: 0; transform: translateY(-14px); }
+    #title { margin: 0; font: italic 500 70px/1.08 Georgia, "Times New Roman", serif; letter-spacing: .01em; }
+    #artist { margin: 20px 0 0; color: rgba(219,237,230,.78); font: 400 23px/1.25 Georgia, "Times New Roman", serif; letter-spacing: .24em; }
+    #lyrics-block { position: absolute; left: 72px; right: 72px; top: 1444px; z-index: 4; min-height: 132px; text-align: center; opacity: 0; transform: translateY(8px); color: rgba(255,249,233,.95); text-shadow: 0 3px 22px rgba(0,0,0,.72), 0 0 18px rgba(85,217,232,.18); pointer-events: none; }
+    #lyrics-block p { margin: 0; }
+    #lyric-main { font: italic 400 46px/1.25 "Baskerville", "Iowan Old Style", Georgia, "Times New Roman", serif; letter-spacing: .015em; text-shadow: 0 3px 24px rgba(0,0,0,.72), 0 0 20px rgba(255,195,91,.12); }
+    #lyric-secondary { margin-top: 13px !important; color: rgba(200,206,202,.84); font: 400 35px/1.36 "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif; letter-spacing: .06em; text-shadow: 0 2px 18px rgba(0,0,0,.7); }
+    .lyric-unit { display: inline-block; white-space: pre; }
+    #lyrics-block.lyric-swap .lyric-unit { animation: lyric-unit-in .78s cubic-bezier(.22,.8,.24,1) both; animation-delay: var(--unit-delay,0ms); }
+    @keyframes lyric-unit-in {
+      0% { opacity: 0; transform: translate3d(0,var(--unit-offset,16px),0); clip-path: inset(var(--unit-clip-top,0) 0 var(--unit-clip-bottom,100%)); filter: blur(4px); }
+      58% { opacity: 1; transform: translate3d(0,calc(var(--unit-offset,16px) * -.1),0); clip-path: inset(0); filter: blur(.2px); }
+      100% { opacity: 1; transform: translate3d(0,0,0); clip-path: inset(0); filter: blur(0); }
+    }
+  </style>
+</head>
+<body>
+  <main id="stage">
+    <div id="backdrop"></div><div id="wash"></div><div id="phone-shell"></div>
+    <canvas id="visual" width="2160" height="3840"></canvas>
+    <div id="title-block"><h1 id="title">《Dancing with my phone》</h1><p id="artist">ESTELA SUN</p></div>
+    <div id="lyrics-block"><p id="lyric-main"></p><p id="lyric-secondary"></p></div>
+  </main>
+  <script>
+    (() => {
+      const W = 1080, H = 1920, canvas = document.querySelector('#visual'), ctx = canvas.getContext('2d');
+      ctx.scale(2, 2);
+      const titleBlock = document.querySelector('#title-block'), backdrop = document.querySelector('#backdrop'), wash = document.querySelector('#wash'), phone = document.querySelector('#phone-shell'), cover = new Image(), data = window.__VIDEO_DATA__;
+      cover.src = window.__COVER_DATA__;
+      backdrop.style.backgroundImage = `url(${JSON.stringify(window.__COVER_DATA__)})`;
+      const bands = data.frames[0].bands.length, cx = 540, cy = 850, recordRadius = 326;
+      const accent = { gold: '#ffc35b', cyan: '#55d9e8', coral: '#f76c5d', ink: '#091219' };
+      const lyrics = [
+        { time: 0, text: "Dancing, I'm all alone", translation: '独自起舞，我孤身一人' },
+        { time: 3.48, text: 'Figuring out how I can get you home', translation: '思索着如何让你回到我身边' },
+        { time: 9.39, text: 'Dancing with my phone', translation: '与手机共舞' },
+        { time: 12.78, text: 'Thinking about you', translation: '心中想着你' },
+        { time: 18.81, text: "Dancing, I'm all alone", translation: '独自起舞，我孤身一人' },
+        { time: 22.29, text: 'Figuring out how I can get you home', translation: '思索着如何让你回到我身边' },
+        { time: 28.23, text: 'Dancing with my phone', translation: '与手机共舞' },
+      ];
+      const lyricsBlock = document.querySelector('#lyrics-block'), lyricMain = document.querySelector('#lyric-main'), lyricSecondary = document.querySelector('#lyric-secondary');
+      let renderedLyricIndex = -1;
+      function renderLyricLine(element, text, seedOffset) {
+        element.replaceChildren();
+        const tokens = text.match(/[\u4e00-\u9fff]|[A-Za-z]+(?:['’][A-Za-z]+)?|\s+|[^\s]/gu) || [];
+        const seed = [...text].reduce((total, char) => total + char.codePointAt(0), seedOffset);
+        let unitIndex = 0;
+        tokens.forEach(token => {
+          if (/^\s+$/.test(token)) {
+            element.append(document.createTextNode(token));
+            return;
+          }
+          const span = document.createElement('span');
+          span.className = 'lyric-unit';
+          const pattern = (seed + unitIndex * 31 + token.codePointAt(0)) % 19;
+          const direction = pattern % 2 ? -1 : 1;
+          span.style.setProperty('--unit-offset', `${direction * (12 + pattern % 14)}px`);
+          span.style.setProperty('--unit-delay', `${(pattern % 5) * 46 + (unitIndex % 3) * 12}ms`);
+          span.textContent = token;
+          element.append(span);
+          unitIndex += 1;
+        });
+      }
+      function updateLyrics(time, fade) {
+        let index = -1;
+        for (let i = 0; i < lyrics.length; i++) if (lyrics[i].time <= time) index = i;
+        if (index < 0 || fade <= .02) { lyricsBlock.style.opacity = '0'; return; }
+        const current = lyrics[index], next = lyrics[index + 1];
+        if (renderedLyricIndex !== index) {
+          renderLyricLine(lyricMain, current.text, 17);
+          renderLyricLine(lyricSecondary, current.translation, 43);
+          lyricsBlock.classList.remove('lyric-swap');
+          void lyricsBlock.offsetWidth;
+          lyricsBlock.classList.add('lyric-swap');
+          renderedLyricIndex = index;
+        }
+        lyricSecondary.style.display = current.translation ? 'block' : 'none';
+        const nextTime = next?.time ?? data.duration;
+        const lineFade = Math.max(0, Math.min(1, (time - current.time) / .28, (nextTime - time) / .42, fade));
+        lyricsBlock.style.opacity = lineFade.toFixed(3);
+        lyricsBlock.style.transform = `translateY(${((1 - lineFade) * 8).toFixed(2)}px)`;
+      }
+      function sample(time) {
+        const position = Math.max(0, Math.min(data.frames.length - 1.001, time * data.fps)), left = Math.floor(position), ratio = position - left, a = data.frames[left], b = data.frames[Math.min(data.frames.length - 1, left + 1)];
+        return { low: a.low + (b.low - a.low) * ratio, mid: a.mid + (b.mid - a.mid) * ratio, high: a.high + (b.high - a.high) * ratio, rms: a.rms + (b.rms - a.rms) * ratio, bands: a.bands.map((value, index) => value + (b.bands[index] - value) * ratio) };
+      }
+      function smoothPath(points) {
+        ctx.beginPath(); ctx.moveTo(points[0][0], points[0][1]);
+        for (let index = 0; index < points.length; index++) {
+          const p0 = points[(index + points.length - 1) % points.length], p1 = points[index], p2 = points[(index + 1) % points.length], p3 = points[(index + 2) % points.length];
+          const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+          ctx.bezierCurveTo(c1[0], c1[1], c2[0], c2[1], p2[0], p2[1]);
+        }
+        ctx.closePath();
+      }
+      function updateAtmosphere(time, energy) {
+        const drift = Math.sin(time * .11), tide = Math.cos(time * .085 + .8), sweep = Math.sin(time * .07 + 1.4);
+        const gold = (.105 + (drift + 1) * .026 + energy.low * .045).toFixed(3), cyan = (.095 + (tide + 1) * .022 + energy.mid * .03).toFixed(3), coral = (.045 + (sweep + 1) * .015 + energy.high * .02).toFixed(3);
+        const x1 = (19 + drift * 13).toFixed(1), y1 = (24 + tide * 10).toFixed(1), x2 = (82 + sweep * 12).toFixed(1), y2 = (43 + drift * 9).toFixed(1);
+        wash.style.background = `linear-gradient(180deg, rgba(9,16,25,.78) 0%, rgba(8,17,24,.32) 34%, rgba(6,12,18,.86) 76%, rgba(5,9,15,.98) 100%), radial-gradient(ellipse at ${x1}% ${y1}%, rgba(255,195,91,${gold}), transparent 49%), radial-gradient(ellipse at ${x2}% ${y2}%, rgba(85,217,232,${cyan}), transparent 53%), radial-gradient(ellipse at 55% 73%, rgba(247,108,93,${coral}), transparent 42%)`;
+        phone.style.opacity = (.72 + energy.low * .32).toFixed(3);
+      }
+      function wave(time, energy, radius, scale, phase, stroke, alpha, width, blur) {
+        const points = [];
+        for (let index = 0; index < bands; index++) { const angle = index / bands * Math.PI * 2 + phase, before = energy.bands[(index + bands - 2) % bands], left = energy.bands[(index + bands - 1) % bands], current = energy.bands[index], right = energy.bands[(index + 1) % bands], after = energy.bands[(index + 2) % bands], local = (before + left * 2 + current * 4 + right * 2 + after) / 10, ripple = Math.sin(angle * 3 + time * .48) * (2.5 + energy.mid * 7) + Math.cos(angle * 6 - time * .33) * (1.1 + energy.high * 3), distance = radius + energy.low * 11 + local * (35 + energy.low * 26) * scale + ripple; points.push([cx + Math.cos(angle) * distance, cy + Math.sin(angle) * distance]); }
+        smoothPath(points); ctx.strokeStyle = stroke; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.shadowColor = stroke; ctx.shadowBlur = blur * 1.35; ctx.globalAlpha = alpha * .22; ctx.lineWidth = width * 3.2; ctx.stroke(); ctx.shadowBlur = blur * .7; ctx.globalAlpha = alpha; ctx.lineWidth = width; ctx.stroke();
+      }
+      function drawRecord(time, energy) {
+        const rotation = time * .205; ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotation); ctx.shadowColor = 'rgba(0,0,0,.62)'; ctx.shadowBlur = 66; ctx.fillStyle = '#050a0f'; ctx.beginPath(); ctx.arc(0, 0, recordRadius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+        const record = ctx.createRadialGradient(-88, -126, 18, 0, 0, recordRadius); record.addColorStop(0, '#30393a'); record.addColorStop(.2, '#182226'); record.addColorStop(.68, '#070d12'); record.addColorStop(1, '#161d20'); ctx.fillStyle = record; ctx.beginPath(); ctx.arc(0, 0, recordRadius, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = .14; for (let i = 0; i < 18; i++) { ctx.strokeStyle = i % 3 === 0 ? '#b8d5d2' : '#6c8587'; ctx.lineWidth = i % 4 === 0 ? 1.1 : .55; ctx.beginPath(); ctx.arc(0, 0, 84 + i * 13.5, 0, Math.PI * 2); ctx.stroke(); }
+        ctx.globalAlpha = .34 + energy.high * .08; const sheen = ctx.createConicGradient(-.7, 0, 0); sheen.addColorStop(0, 'rgba(255,255,255,0)'); sheen.addColorStop(.1, 'rgba(255,195,91,.2)'); sheen.addColorStop(.19, 'rgba(255,255,255,0)'); sheen.addColorStop(.52, 'rgba(247,108,93,.08)'); sheen.addColorStop(.68, 'rgba(255,255,255,0)'); sheen.addColorStop(.87, 'rgba(85,217,232,.16)'); sheen.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = sheen; ctx.beginPath(); ctx.arc(0, 0, recordRadius - 5, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 139, 0, Math.PI * 2); ctx.clip(); ctx.globalAlpha = .98; ctx.drawImage(cover, -139, -139, 278, 278); ctx.fillStyle = 'rgba(5,14,18,.12)'; ctx.fillRect(-139, -139, 278, 278); ctx.restore();
+        ctx.strokeStyle = 'rgba(255,195,91,.46)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 141, 0, Math.PI * 2); ctx.stroke(); ctx.strokeStyle = 'rgba(1,6,9,.88)'; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(0, 0, 149, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#0a1215'; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'rgba(221,241,232,.72)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+      }
+      function drawPhoneSignals(time, energy) {
+        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.translate(cx, cy); ctx.rotate(-3.5 * Math.PI / 180); ctx.translate(-cx, -cy);
+        for (let i = 0; i < 13; i++) {
+          const x = 294 + i * 41, height = 9 + (Math.sin(time * 2.2 + i * .7) * .5 + .5) * (14 + energy.low * 38) + energy.bands[(i * 5) % bands] * 34, color = [accent.gold, accent.cyan, accent.coral][i % 3];
+          ctx.strokeStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 17 + energy.high * 12; ctx.globalAlpha = .24 + energy.high * .18; ctx.lineWidth = 10; ctx.beginPath(); ctx.moveTo(x, 1270 - height); ctx.lineTo(x, 1270 + height * .18); ctx.stroke();
+          ctx.shadowBlur = 5; ctx.globalAlpha = .72 + energy.high * .2; ctx.lineWidth = 4.6; ctx.stroke();
+        }
+        ctx.restore();
+      }
+      window.renderReady = new Promise(resolve => { cover.onload = resolve; if (cover.complete) resolve(); });
+      window.renderFrame = async (time) => {
+        await window.renderReady; const energy = sample(time), fade = Math.min(1, time / 1.15, (data.duration - time) / 1.05); updateAtmosphere(time, energy); backdrop.style.transform = `scale(1.2) translate(${Math.sin(time * .04) * 12}px, ${Math.cos(time * .035) * 9}px)`; backdrop.style.opacity = (.3 + energy.low * .08).toFixed(3); titleBlock.style.opacity = Math.max(0, Math.min(1, (fade - .12) / .45)).toFixed(3); titleBlock.style.transform = `translateY(${-14 + Math.min(14, time * 14)}px)`; updateLyrics(time, fade);
+        ctx.clearRect(0, 0, W, H); ctx.globalAlpha = fade; const haze = ctx.createLinearGradient(0, 0, 0, H); haze.addColorStop(0, 'rgba(8,23,31,.08)'); haze.addColorStop(.53, 'rgba(9,38,42,.07)'); haze.addColorStop(1, 'rgba(3,9,15,.3)'); ctx.fillStyle = haze; ctx.fillRect(0, 0, W, H); ctx.save(); ctx.globalCompositeOperation = 'screen'; wave(time, energy, 363, 1, time * .015, accent.cyan, .76, 3.1, 22); ctx.restore(); drawPhoneSignals(time, energy); drawRecord(time, energy); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(3,8,13,.13)'; ctx.fillRect(0, 0, W, H); return true;
+      };
+    })();
+  </script>
+</body>
+</html>

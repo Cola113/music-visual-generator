@@ -112,6 +112,9 @@ try {
   await waitFor("document.querySelector('#play-toggle') && !document.querySelector('#play-toggle').disabled");
   await delay(750);
   passed('页面与演示曲初始化');
+  assert.equal(await evaluate("document.querySelector('#player-title').textContent"), '《Dancing with my phone》');
+  assert.equal(await evaluate("document.querySelector('#stage').dataset.scene"), 'pocket');
+  passed('主题曲默认加载与口袋夜舞场景');
   await screenshot('desktop-initial.png');
   assert.equal(await evaluate("[...document.querySelectorAll('img')].every(image=>image.complete&&image.naturalWidth>0)"), true);
 
@@ -188,7 +191,7 @@ try {
   assert.ok(await evaluate("document.querySelector('#lrc-editor').value.includes('[00:13.25]手动修改的一束光')"));
   passed('单句文字与时间微调');
 
-  for (const scene of ['moon', 'orbit', 'afterglow']) {
+  for (const scene of ['moon', 'orbit', 'afterglow', 'pocket']) {
     await click(`.scene-card[data-scene="${scene}"]`);
     assert.equal(await evaluate("document.querySelector('#stage').dataset.scene"), scene);
     await delay(800);
@@ -199,6 +202,7 @@ try {
   await click('.scene-card[data-scene="moon"]');
   await click('.scene-card[data-scene="orbit"]');
   await click('.scene-card[data-scene="afterglow"]');
+  await click('.scene-card[data-scene="pocket"]');
   await delay(200);
   assert.equal(await evaluate("document.querySelector('#play-toggle').classList.contains('is-playing')"), true);
   assert.ok(await evaluate("Number(document.querySelector('#progress').value)") >= sceneAudioTime);
@@ -240,7 +244,7 @@ try {
   passed('冷蓝、暖橘、紫夜与代码自绘明亮封面可读布局', '已截图；歌词最多两行、不溢出、不遮挡歌曲信息');
 
   await attachFile('#audio-file', 'assets/audio/orange-echo.wav');
-  await waitFor("document.querySelectorAll('.track-card').length === 4 && !document.querySelector('#play-toggle').disabled");
+  await waitFor("document.querySelectorAll('.track-card').length === 5 && !document.querySelector('#play-toggle').disabled");
   await input('#track-title', '本机合成的测试曲', 'change');
   await input('#track-artist', '测试创作者', 'change');
   await input('#clip-start', 5, 'change');

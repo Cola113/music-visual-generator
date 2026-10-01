@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1440,height=1920,initial-scale=1">
+  <title>第001张唱片</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 1440px; height: 1920px; margin: 0; overflow: hidden; background: #061119; }
+    body { font-family: "Noto Serif SC", "SimSun", serif; color: #f5f3ed; }
+    #cover { position: relative; width: 1440px; height: 1920px; overflow: hidden; }
+    #scene { position: absolute; top: -120px; left: -45px; display: block; width: 1530px; height: 2720px; }
+    .top-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2,10,14,.42), rgba(2,10,14,.08) 24%, transparent 42%, transparent 79%, rgba(2,10,14,.32)); }
+    .heading { position: absolute; top: 115px; left: 116px; right: 116px; }
+    .edition { display: flex; align-items: baseline; gap: 15px; margin: 0; font-size: 40px; line-height: 1; font-weight: 400; letter-spacing: 0; color: #acd9d9; }
+    .edition .number { font: italic 400 70px/1 Georgia, "Times New Roman", serif; color: #f5f3ed; }
+    .edition-rule { width: 100%; height: 1px; margin: 31px 0 0; background: rgba(154,201,204,.35); }
+    .genre-block { position: absolute; left: 120px; right: 120px; bottom: 126px; }
+    .genre-rule { display: flex; align-items: center; height: 2px; margin-bottom: 32px; }
+    .genre-rule::before { content: ""; width: 62px; height: 2px; background: #bdb2c6; }
+    .genre-rule::after { content: ""; flex: 1; height: 1px; background: rgba(154,201,204,.28); }
+    .genre { display: flex; align-items: baseline; justify-content: space-between; gap: 28px; margin: 0; }
+    .genre .chinese { font-size: 44px; line-height: 1.35; font-weight: 400; letter-spacing: 0; color: #dde9e6; }
+    .genre .english { font: 400 31px/1.35 Arial, sans-serif; letter-spacing: 0; color: #94b4b7; }
+  </style>
+</head>
+<body>
+  <main id="cover">
+    <img id="scene" alt="视频中的唱片月相与波浪光环">
+    <div class="top-shade"></div>
+    <header class="heading">
+      <p class="edition"><span>第</span><span class="number">001</span><span>张唱片</span></p>
+      <div class="edition-rule"></div>
+    </header>
+    <footer class="genre-block">
+      <div class="genre-rule"></div>
+      <p class="genre"><span class="chinese">流行浩室</span><span class="english">POP HOUSE</span></p>
+    </footer>
+  </main>
+  <script>
+    const scene = document.querySelector('#scene');
+    const edition = window.__EDITION__ || '001';
+    document.querySelector('.number').textContent = edition;
+    document.title = `第${edition}张唱片`;
+    window.coverReady = new Promise((resolve, reject) => {
+      scene.onload = resolve;
+      scene.onerror = () => reject(new Error('无法加载视频画面'));
+      scene.src = window.__CLEAN_FRAME__;
+    });
+  </script>
+</body>
+</html>

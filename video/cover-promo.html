@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1440,height=1920,initial-scale=1">
+  <title>第001张唱片 · 这首歌竟然会发光</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 1440px; height: 1920px; margin: 0; overflow: hidden; background: #061119; }
+    body { font-family: "Noto Serif SC", "SimSun", serif; color: #f5f3ed; }
+    #cover { position: relative; width: 1440px; height: 1920px; overflow: hidden; }
+    #scene { position: absolute; top: 85px; left: -30px; display: block; width: 1500px; height: 2666.667px; filter: brightness(1.21) saturate(1.12); }
+    .top-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2,10,14,.3), rgba(2,10,14,.04) 30%, transparent 43%, transparent 84%, rgba(2,10,14,.6)); }
+    .heading { position: absolute; top: 86px; left: 112px; right: 112px; }
+    .edition { display: flex; align-items: baseline; gap: 12px; margin: 0; color: #abcacb; font-size: 36px; line-height: 1; font-weight: 400; letter-spacing: 0; }
+    .edition .number { font: italic 400 54px/1 Georgia, "Times New Roman", serif; color: #f4efe8; }
+    .hook { margin: 56px 0 0; text-align: center; letter-spacing: 0; }
+    .hook .intro { display: block; font-size: 96px; line-height: 1.16; font-weight: 500; color: #f4efe8; }
+    .hook .promise { display: block; margin-top: 17px; font: 700 174px/1.14 "Noto Sans SC", "Microsoft YaHei", sans-serif; color: #d1fbf2; white-space: nowrap; text-shadow: 0 3px 28px rgba(51,168,176,.2); }
+    .song-block { position: absolute; left: 112px; right: 112px; bottom: 64px; }
+    .song { margin: 0; text-align: center; white-space: nowrap; font-weight: 400; letter-spacing: 0; }
+    .song .bracket { font-size: 47px; line-height: 1.2; color: #aacdcd; }
+    .song .name { font: italic 400 78px/1.12 Georgia, "Times New Roman", serif; color: #f5f3ed; }
+    .credits { display: flex; align-items: baseline; justify-content: space-between; gap: 30px; margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(157,204,206,.32); }
+    .artist { margin: 0; font: 400 33px/1.35 Arial, "Microsoft YaHei", sans-serif; letter-spacing: 0; color: #d5dfdd; }
+    .genre { margin: 0; font-size: 33px; line-height: 1.35; font-weight: 400; letter-spacing: 0; color: #bacaca; }
+  </style>
+</head>
+<body>
+  <main id="cover">
+    <img id="scene" alt="视频中的发光唱片与波浪光环">
+    <div class="top-shade"></div>
+    <header class="heading">
+      <p class="edition"><span>第</span><span class="number">001</span><span>张唱片</span></p>
+      <h1 class="hook"><span class="intro">这首歌</span><span class="promise">竟然会发光</span></h1>
+    </header>
+    <footer class="song-block">
+      <h2 class="song"><span class="bracket">《</span><span class="name">Sway My Way</span><span class="bracket">》</span></h2>
+      <div class="credits"><p class="artist">R3HAB &amp; AMY SHARK</p><p class="genre">流行浩室</p></div>
+    </footer>
+  </main>
+  <script>
+    const scene = document.querySelector('#scene');
+    const edition = window.__EDITION__ || '001';
+    document.querySelector('.number').textContent = edition;
+    document.title = `第${edition}张唱片`;
+    window.coverReady = new Promise((resolve, reject) => {
+      scene.onload = resolve;
+      scene.onerror = () => reject(new Error('无法加载视频画面'));
+      scene.src = window.__CLEAN_FRAME__;
+    });
+  </script>
+</body>
+</html>

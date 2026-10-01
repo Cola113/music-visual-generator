@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080,height=1920,initial-scale=1">
+  <title>Sway My Way visual</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { width: 1080px; height: 1920px; margin: 0; overflow: hidden; background: #061119; }
+    body { position: relative; font-family: Arial, "Microsoft YaHei", sans-serif; }
+    #stage, #backdrop, #wash, #visual { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+    #stage { overflow: hidden; background: #061119; }
+    #backdrop { background-position: center; background-size: cover; filter: blur(46px) saturate(.92) brightness(.72); opacity: .35; transform: scale(1.18); }
+    #wash { background: linear-gradient(180deg, rgba(3,13,19,.75) 0%, rgba(3,15,22,.34) 34%, rgba(3,11,18,.86) 79%, rgba(2,9,15,.98) 100%), linear-gradient(110deg, rgba(30,112,143,.17), transparent 42%, rgba(152,91,147,.10)); transition: background .35s linear; }
+    #visual { display: block; }
+    #lyrics-block { position: absolute; left: 92px; right: 92px; bottom: 460px; text-align: center; color: rgba(244,248,246,.95); opacity: 0; transform: translateY(12px); text-shadow: 0 5px 28px rgba(0,0,0,.62); }
+    #lyrics-block::before { content: ""; display: block; width: 30px; height: 1px; margin: 0 auto 22px; background: linear-gradient(90deg, rgba(141,236,239,.1), rgba(141,236,239,.84), rgba(220,159,219,.18)); box-shadow: 0 0 16px rgba(130,222,231,.4); }
+    #lyric-en { min-height: 56px; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; column-gap: .28em; row-gap: .08em; margin: 0; font: 500 39px/1.22 Georgia, "Times New Roman", serif; letter-spacing: .025em; }
+    .lyric-word { color: rgba(235,245,241,.34); transition: color .08s linear, opacity .08s linear, text-shadow .08s linear; }
+    .lyric-word.is-past { color: rgba(231,242,239,.72); }
+    .lyric-word.is-active { color: rgba(250,255,251,.98); text-shadow: 0 0 18px rgba(165,241,236,.55); }
+    #lyric-zh { margin: 16px 0 0; color: rgba(211,232,229,.78); font: 400 28px/1.45 "STSong", "Songti SC", "SimSun", serif; letter-spacing: .12em; }
+    #title-block { position: absolute; left: 86px; right: 86px; top: 108px; text-align: center; color: rgba(244,248,246,.95); text-shadow: 0 5px 30px rgba(0,0,0,.5); opacity: 0; transform: translateY(-14px); }
+    #title-block::before { content: ""; display: block; width: 92px; height: 1px; margin: 0 auto 24px; background: linear-gradient(90deg, rgba(141,236,239,.05), rgba(141,236,239,.92), rgba(220,159,219,.35)); box-shadow: 0 0 18px rgba(130,222,231,.55); }
+    #title { margin: 0; font: italic 500 70px/1.08 Georgia, "Times New Roman", "STKaiti", serif; letter-spacing: .015em; }
+    #artist { margin: 16px 0 0; color: rgba(217,231,229,.78); font: 500 24px/1.2 Arial, "Microsoft YaHei", sans-serif; letter-spacing: .2em; }
+  </style>
+</head>
+<body>
+  <main id="stage"><div id="backdrop"></div><div id="wash"></div><canvas id="visual" width="1080" height="1920"></canvas><div id="lyrics-block"><p id="lyric-en"></p><p id="lyric-zh"></p></div><div id="title-block"><h1 id="title">《Sway My Way》</h1><p id="artist">R3HAB &amp; AMY SHARK</p></div></main>
+  <script>
+    (() => {
+      const W = 1080, H = 1920, canvas = document.querySelector('#visual'), ctx = canvas.getContext('2d');
+      const titleBlock = document.querySelector('#title-block'), lyricBlock = document.querySelector('#lyrics-block'), lyricEn = document.querySelector('#lyric-en'), lyricZh = document.querySelector('#lyric-zh'), backdrop = document.querySelector('#backdrop'), wash = document.querySelector('#wash'), cover = new Image(), data = window.__VIDEO_DATA__;
+      cover.src = window.__COVER_DATA__;
+      backdrop.style.backgroundImage = `url(${JSON.stringify(window.__COVER_DATA__)})`;
+      const lyrics = [
+        { start: .06, words: [["I've", .08, .40], ["never", .40, .62], ["been", .62, 1.14], ["so", 1.14, 1.46], ["open", 1.46, 1.92], ["but", 1.92, 2.24], ["I", 2.24, 2.54], ["can't", 2.54, 3.46], ["lie", 3.46, 4.00]], zh: "我从未如此坦诚 却无法说谎" },
+        { start: 4.52, words: [["No", 4.52, 4.88], ["matter", 4.88, 5.24], ["how", 5.24, 5.50], ["I", 5.50, 5.78], ["try", 5.78, 6.28]], zh: "无论我怎样努力" },
+        { start: 6.62, words: [["You're", 6.62, 6.80], ["something", 6.80, 7.14], ["that", 7.14, 7.42], ["I", 7.42, 7.64], ["can't", 7.64, 8.00], ["contain", 8.00, 8.34]], zh: "你是我无法收拢的火焰" },
+        { start: 8.68, words: [["Like", 8.68, 8.84], ["capturing", 8.84, 9.28], ["a", 9.28, 9.72], ["flame", 9.72, 10.12]], zh: "像试图捕捉一簇火光" },
+        { start: 10.40, words: [["And", 10.40, 10.46], ["I", 10.46, 10.68], ["know", 10.68, 10.88], ["you", 10.88, 11.66], ["love", 11.66, 12.30], ["to", 12.30, 12.72], ["move", 12.72, 13.42]], zh: "我知道你偏爱流动" },
+        { start: 14.00, words: [["Like", 14.00, 14.14], ["catching", 14.14, 14.74], ["fire", 14.74, 15.86], ["in", 15.86, 16.20], ["my", 16.20, 16.58], ["hands", 16.58, 17.30]], zh: "像让火焰在掌心停留" },
+        { start: 19.44, words: [["Say", 19.44, 20.16], ["you'll", 20.16, 21.14], ["stay", 21.14, 21.88]], zh: "答应我 你会留下" },
+        { start: 21.96, words: [["Don't", 21.96, 22.44], ["come", 22.44, 22.88], ["and", 22.88, 23.10], ["go", 23.10, 24.18]], zh: "别忽近忽远" },
+        { start: 24.18, words: [["Like", 24.18, 24.66], ["you", 24.66, 25.14], ["do", 25.14, 26.14]], zh: "像你一贯那样" },
+        { start: 26.78, words: [["Sway", 26.78, 27.45], ["my", 27.45, 28.15], ["way", 28.15, 29.25]], zh: "向我摇曳而来" },
+        { start: 30.26, words: [["Yeah", 30.26, 30.56], ["I", 30.56, 30.88], ["need", 30.88, 31.36], ["to", 31.36, 31.90], ["know", 31.90, 32.43]], zh: "我想知道" },
+        { start: 33.24, words: [["All", 33.24, 33.78], ["about", 33.78, 34.30], ["you", 34.30, 35.26]], zh: "关于你的一切" }
+      ];
+      const stars = Array.from({ length: 126 }, (_, index) => ({ x: (index * 149.3 + 37) % W, y: (index * 311.7 + 101) % H, r: .7 + (index % 5) * .28, phase: index * 1.731, drift: .4 + (index % 7) * .09 }));
+      const bands = data.frames[0].bands.length, cx = 540, cy = 746, recordRadius = 336;
+      const accent = { cyan: '#8ee8ec', lilac: '#cfb1df', blue: '#4e98bb' };
+      function sample(time) {
+        const position = Math.max(0, Math.min(data.frames.length - 1.001, time * data.fps)), left = Math.floor(position), ratio = position - left, a = data.frames[left], b = data.frames[Math.min(data.frames.length - 1, left + 1)];
+        return { low: a.low + (b.low - a.low) * ratio, mid: a.mid + (b.mid - a.mid) * ratio, high: a.high + (b.high - a.high) * ratio, rms: a.rms + (b.rms - a.rms) * ratio, bands: a.bands.map((value, index) => value + (b.bands[index] - value) * ratio) };
+      }
+      function updateAtmosphere(time) {
+        const drift = Math.sin(time * .028), tide = Math.cos(time * .021 + .8), sweep = Math.sin(time * .017 + 1.4);
+        const cyan = (0.11 + (drift + 1) * .025).toFixed(3), lilac = (0.075 + (tide + 1) * .018).toFixed(3);
+        const x1 = (38 + drift * 12).toFixed(1), y1 = (23 + tide * 10).toFixed(1), x2 = (72 + sweep * 14).toFixed(1), y2 = (68 + drift * 8).toFixed(1);
+        wash.style.background = `linear-gradient(180deg, rgba(3,13,19,.76) 0%, rgba(3,15,22,.34) 34%, rgba(3,11,18,.86) 79%, rgba(2,9,15,.98) 100%), radial-gradient(ellipse at ${x1}% ${y1}%, rgba(42,143,164,${cyan}), transparent 56%), radial-gradient(ellipse at ${x2}% ${y2}%, rgba(168,106,164,${lilac}), transparent 52%)`;
+      }
+      function smoothPath(points) {
+        ctx.beginPath(); const first = points[0], second = points[1]; ctx.moveTo((first[0] + second[0]) / 2, (first[1] + second[1]) / 2);
+        for (let index = 0; index < points.length; index++) { const point = points[index], next = points[(index + 1) % points.length]; ctx.quadraticCurveTo(point[0], point[1], (point[0] + next[0]) / 2, (point[1] + next[1]) / 2); }
+        ctx.closePath();
+      }
+      function wave(time, energy, radius, scale, phase, stroke, alpha, width, blur) {
+        const points = [];
+        for (let index = 0; index < bands; index++) { const angle = index / bands * Math.PI * 2 + phase, left = energy.bands[(index + bands - 2) % bands], current = energy.bands[index], right = energy.bands[(index + 2) % bands], local = (left + current * 2 + right) / 4, ripple = Math.sin(angle * 3 + time * .48) * (2.5 + energy.mid * 7) + Math.cos(angle * 6 - time * .33) * (1.1 + energy.high * 3), distance = radius + energy.low * 8 + local * (36 + energy.low * 24) * scale + ripple; points.push([cx + Math.cos(angle) * distance, cy + Math.sin(angle) * distance]); }
+        smoothPath(points); ctx.strokeStyle = stroke; ctx.lineWidth = width; ctx.globalAlpha = alpha; ctx.shadowColor = stroke; ctx.shadowBlur = blur; ctx.stroke();
+      }
+      function drawMoonPhase(time) {
+        const angle = -.8 + Math.sin(time * .14) * .035, distance = 250, x = cx + Math.cos(angle) * distance, y = cy + Math.sin(angle) * distance;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(angle + Math.PI / 2); ctx.globalAlpha = .22; ctx.fillStyle = accent.cyan; ctx.shadowColor = accent.cyan; ctx.shadowBlur = 20; ctx.beginPath(); ctx.arc(0, 0, 30, 0, Math.PI * 2); ctx.fill(); ctx.globalCompositeOperation = 'destination-out'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(11, -3, 31, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      }
+      function drawRecord(time, energy) {
+        const rotation = time * .19; ctx.save(); ctx.translate(cx, cy); ctx.rotate(rotation); ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 62; ctx.fillStyle = '#070d11'; ctx.beginPath(); ctx.arc(0, 0, recordRadius, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+        const record = ctx.createRadialGradient(-86, -126, 20, 0, 0, recordRadius); record.addColorStop(0, '#333e40'); record.addColorStop(.2, '#1a2428'); record.addColorStop(.68, '#0a1014'); record.addColorStop(1, '#151c20'); ctx.fillStyle = record; ctx.beginPath(); ctx.arc(0, 0, recordRadius, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = .14; for (let i = 0; i < 17; i++) { ctx.strokeStyle = i % 3 === 0 ? '#a8d0d1' : '#72898d'; ctx.lineWidth = i % 4 === 0 ? 1.1 : .55; ctx.beginPath(); ctx.arc(0, 0, 82 + i * 14, 0, Math.PI * 2); ctx.stroke(); }
+        ctx.globalAlpha = .36; const sheen = ctx.createConicGradient(-.7, 0, 0); sheen.addColorStop(0, 'rgba(255,255,255,0)'); sheen.addColorStop(.08, 'rgba(159,235,234,.18)'); sheen.addColorStop(.18, 'rgba(255,255,255,0)'); sheen.addColorStop(.52, 'rgba(205,156,217,.07)'); sheen.addColorStop(.66, 'rgba(255,255,255,0)'); sheen.addColorStop(.88, 'rgba(136,214,226,.12)'); sheen.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = sheen; ctx.beginPath(); ctx.arc(0, 0, recordRadius - 5, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.beginPath(); ctx.arc(0, 0, 137, 0, Math.PI * 2); ctx.clip(); ctx.globalAlpha = .98; ctx.drawImage(cover, -137, -137, 274, 274); ctx.fillStyle = 'rgba(4,18,26,.14)'; ctx.fillRect(-137, -137, 274, 274); ctx.restore();
+        ctx.strokeStyle = 'rgba(173,228,230,.32)'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 0, 139, 0, Math.PI * 2); ctx.stroke(); ctx.strokeStyle = 'rgba(1,6,9,.86)'; ctx.lineWidth = 11; ctx.beginPath(); ctx.arc(0, 0, 146, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = '#0b1215'; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = 'rgba(218,238,232,.65)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+      }
+      function drawParticles(time) {
+        ctx.save(); for (const star of stars) { const x = star.x + Math.sin(time * .045 * star.drift + star.phase) * 14, y = (star.y - time * (1.6 + star.drift * 2) + H) % H, alpha = (.08 + (star.phase % 1) * .13) * .7; ctx.globalAlpha = alpha; ctx.fillStyle = star.phase % 2 > 1 ? accent.lilac : accent.cyan; ctx.beginPath(); ctx.arc(x, y, star.r, 0, Math.PI * 2); ctx.fill(); } ctx.restore();
+      }
+      function drawAmbientLines(time) {
+        ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = .085; ctx.strokeStyle = accent.blue; ctx.lineWidth = 1.8;
+        for (let line = 0; line < 4; line++) {
+          ctx.beginPath();
+          for (let x = -40; x <= W + 40; x += 16) {
+            const base = 1170 + line * 126, y = base + Math.sin(x * .0062 + time * .045 + line * .72) * (24 + line * 3) + Math.sin(x * .013 - time * .028 + line) * 11 + Math.cos(x * .0025 + time * .02) * 8;
+            if (x === -40) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      let renderedLyric = -1;
+      function renderLyricCue(cue, index) {
+        lyricEn.replaceChildren();
+        for (const [word, start, end] of cue.words) {
+          const span = document.createElement('span');
+          span.className = 'lyric-word'; span.textContent = word; span.dataset.start = start; span.dataset.end = end;
+          lyricEn.appendChild(span);
+        }
+        lyricZh.textContent = cue.zh;
+        renderedLyric = index;
+      }
+      function updateLyrics(time, fade) {
+        let index = -1;
+        for (let i = 0; i < lyrics.length; i++) if (lyrics[i].start <= time) index = i;
+        if (index < 0) { lyricBlock.style.opacity = '0'; return; }
+        const current = lyrics[index], nextTime = lyrics[index + 1]?.start ?? data.duration;
+        if (renderedLyric !== index) renderLyricCue(current, index);
+        const local = time - current.start, inFade = Math.min(1, local / .28), outFade = Math.min(1, (nextTime - time) / .40);
+        lyricBlock.style.opacity = Math.max(0, Math.min(1, fade, inFade, outFade)).toFixed(3);
+        lyricBlock.style.transform = `translateY(${(1 - Math.min(1, inFade)) * 12}px)`;
+        for (const span of lyricEn.children) {
+          const start = Number(span.dataset.start), end = Number(span.dataset.end);
+          span.className = `lyric-word${time >= end ? ' is-past' : time >= start ? ' is-active' : ''}`;
+        }
+      }
+      window.renderReady = new Promise(resolve => { cover.onload = resolve; if (cover.complete) resolve(); });
+      window.renderFrame = async (time) => {
+        await window.renderReady; const energy = sample(time), fade = Math.min(1, time / 1.15, (data.duration - time) / 1.05);
+        updateAtmosphere(time); backdrop.style.transform = `scale(1.18) translate(${Math.sin(time * .04) * 11}px, ${Math.cos(time * .035) * 8}px)`; backdrop.style.opacity = '.35'; titleBlock.style.opacity = Math.max(0, Math.min(1, (fade - .12) / .45)).toFixed(3); titleBlock.style.transform = `translateY(${-14 + Math.min(14, time * 14)}px)`; updateLyrics(time, fade);
+        ctx.clearRect(0, 0, W, H); ctx.globalAlpha = fade; const haze = ctx.createLinearGradient(0, 0, 0, H); haze.addColorStop(0, 'rgba(4,23,32,.10)'); haze.addColorStop(.52, 'rgba(7,39,46,.08)'); haze.addColorStop(1, 'rgba(1,10,16,.28)'); ctx.fillStyle = haze; ctx.fillRect(0, 0, W, H);
+        drawParticles(time); drawAmbientLines(time); drawMoonPhase(time); ctx.save(); ctx.globalCompositeOperation = 'screen'; wave(time, energy, 372, 1, time * .015, accent.cyan, .76, 3.1, 22); wave(time, energy, 382, .42, -time * .012, accent.lilac, .2, 1.1, 12); ctx.restore(); drawRecord(time); ctx.globalAlpha = 1; ctx.fillStyle = 'rgba(1,7,12,.12)'; ctx.fillRect(0, 0, W, H); return true;
+      };
+    })();
+  </script>
+</body>
+</html>

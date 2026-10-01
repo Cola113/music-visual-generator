@@ -31,21 +31,54 @@ python -m http.server 8000 --bind 127.0.0.1
 
 ## 离线视频样片
 
-`exports/` 保存《Sway My Way》的两版唱片月相样片及预览图。第二版为 1080×1920、30 fps、36.6 秒，截取原曲 73.4–110.0 秒，包含中英对照歌词，句末不加句号。外圈波形响应音乐频谱；唱片匀速自转，背景、星尘和环境线独立慢速运动。
+`exports/` 保存《Sway My Way》的唱片月相样片及预览图。v4 为 1080×1920、30 fps、36.6 秒，截取原曲 73.4–110.0 秒，保留唱片与月相波形，标题和歌手置于上方，歌词上移到唱片下方的留白区。v5 恢复第一版的整句节奏，并加入英文中心展开、中文延迟跟进、轻微光扫和柔和退场；外圈波形响应音乐频谱，唱片匀速自转，背景渐变、星尘和环境曲线独立慢速运动。歌词时间参考用户提供的官方歌词视频校对，成片音频仍使用 `Music/Sway My Way.mp3`。
 
 - [第二版 MP4](exports/sway-my-way-moon-phase-v2.mp4)
 - [第二版预览图](exports/sway-my-way-moon-phase-v2-poster.jpg)
+- [第三版 MP4](exports/sway-my-way-moon-phase-v3.mp4)
+- [第三版预览图](exports/sway-my-way-moon-phase-v3-poster.jpg)
+- [第四版 MP4](exports/sway-my-way-moon-phase-v4.mp4)
+- [第四版预览图](exports/sway-my-way-moon-phase-v4-poster.jpg)
+- [第五版 MP4](exports/sway-my-way-moon-phase-v5.mp4)
+- [第五版预览图](exports/sway-my-way-moon-phase-v5-poster.jpg)
 
-渲染代码在 `video/`：`analyze.py` 用 PyAV 和 NumPy 生成逐帧频谱，`render.html` 绘制确定性的画面，`render.mjs` 用 Playwright、Edge 和 FFmpeg 合成 H.264 / AAC 视频。该脚本独立于网页工作台，需要上述工具；脚本中的本机默认路径可通过 `MOONCUT_PLAYWRIGHT`、`MOONCUT_EDGE`、`MOONCUT_FFMPEG` 覆盖。`MOONCUT_PLAYWRIGHT` 指向包含 `index.mjs` 的 Playwright 包目录，其余两个变量指向可执行文件。
+渲染代码在 `video/`：`analyze.py` 用 PyAV 和 NumPy 生成逐帧频谱，`render.html` / `render-v3.html` / `render-v4.html` / `render-v5.html` 绘制确定性的画面，`render.mjs` / `render-v3.mjs` / `render-v4.mjs` / `render-v5.mjs` 用 Playwright、Edge 和 FFmpeg 合成 H.264 / AAC 视频。该脚本独立于网页工作台，需要上述工具；脚本中的本机默认路径可通过 `MOONCUT_PLAYWRIGHT`、`MOONCUT_EDGE`、`MOONCUT_FFMPEG` 覆盖。`MOONCUT_PLAYWRIGHT` 指向包含 `index.mjs` 的 Playwright 包目录，其余两个变量指向可执行文件。
 
 原始音频与封面由用户提供，放在仓库同级的 `Music/`，文件名分别为 `Sway My Way.mp3` 和 `ab67616d0000b2737d14546dbde66888952efaf2.jpg`。它们不属于下面的原创演示素材；渲染依赖和原始素材需要在本机准备。
 
 ```powershell
 python video/analyze.py "../Music/Sway My Way.mp3" video/sway-envelope-v2.json --start 73.4 --duration 36.6 --fps 30
-node video/render.mjs
+node video/render-v3.mjs
+# 生成歌词上移后的第四版
+node video/render-v4.mjs
+# 生成整句高级过渡的第五版
+node video/render-v5.mjs
 ```
 
-第二版频谱数据已保存在 `video/sway-envelope-v2.json`。渲染脚本会重写第二版成片和预览图，临时帧位于被 Git 忽略的 `.verification/`，完成后会自动删除临时帧并进行完整解码检查。
+第二版至第五版共用 `video/sway-envelope-v2.json` 频谱数据。`render-v4.mjs` 使用 `render-v4.html` 渲染逐词歌词；`render-v5.mjs` 使用 `render-v5.html` 恢复整句歌词，并加入中心展开、中文延迟和慢速背景动效。临时帧位于被 Git 忽略的 `.verification/`，完成后会自动删除临时帧并进行完整解码检查。
+
+## 小红书封面
+
+艺术版封面只保留三个角的文字：左上角为作品编号，左下角为中文风格，右下角为英文风格；中间不叠加歌名和歌手，让唱片月相成为唯一主体。当前作品为 `001`，下一张使用 `002`，编号由渲染命令的第二个参数传入：
+
+```powershell
+# 当前作品
+node video/render-cover.mjs art 001
+# 下一张作品
+node video/render-cover.mjs art 002
+```
+
+输出文件会按编号保存为 `exports/sway-my-way-xiaohongshu-cover-001.png` / `.jpg` 或对应的 `002` 文件。`video/cover.html` 已将唱片主体略微放大并上移，以适应移除中间大字后的留白构图；`cover-promo.html` 仍保留宣传版模板，需要宣传文案时单独使用 `promo` 版本。
+
+## 确认版视频制作流程
+
+以后制作同类音乐可视化视频，默认沿用第五版的流程与验收标准：
+
+1. **素材与选段**：使用用户提供的音频和封面；有官方歌词视频时只用它核对歌词出现时间，最终成片音频仍使用用户指定的音频文件。优先选择副歌或情绪最完整的片段，并先确定固定时长、画幅和起始时间。
+2. **视觉主体**：保留唱片月相作为主视觉。唱片保持匀速旋转，只有外圈波形响应音乐；背景渐变、星尘和曲线做非常慢的独立运动，避免唱片和背景随音频抽搐。
+3. **文字层级**：顶部只保留带书名号的歌名和歌手；歌词放在唱片下方的留白区。歌词采用中英对照的整句显示，英文先出现、中文稍后跟进，句末不加句号，不加入封面专用的宣传文字。
+4. **歌词动效**：使用整句中心展开、轻微光扫、短暂柔焦和柔和退场；不使用逐词变色或逐词跳动。歌词时间以官方歌词视频与音频波形共同校对，发现局部误差时优先调整整句 cue，而不是拆成逐词 cue。
+5. **渲染与交付**：先生成频谱数据，再运行对应版本的 Playwright + Edge + FFmpeg 渲染脚本。交付 MP4 和预览图，并核对分辨率、帧率、时长、音视频流、完整解码和本地 HTTP 访问；临时抽帧放在 `.verification/`，检查后清理。
 
 ## 演示素材
 
